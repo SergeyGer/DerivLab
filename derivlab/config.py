@@ -16,7 +16,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 APP_NAME = "DerivLab"
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.1.0"
 APP_TITLE = "Options & Futures Strategy Emulator"
 APP_SUBTITLE = (
     "Learn, configure, and backtest advanced trading strategies using "

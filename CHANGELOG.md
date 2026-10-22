@@ -2,6 +2,35 @@
 
 All notable changes to DerivLab are documented here.
 
+## [1.1.0] - 2026-10-22
+
+### Added
+
+- **AI Arena.** A new screen where three autonomous rival desks trade the same
+  historical scenario as the user. The desks choose their own strategies and
+  parameters from a pre-simulation market context.
+- **AlphaVanguard AI performance review.** A strict three-section Markdown report
+  comparing the user portfolio, the AlphaVanguard rival portfolio, the whole
+  leaderboard, and the critical trigger timeline.
+- **Cyberpunk NewsWire.** A four-item market wire generated from the cycle's
+  metrics, model names, and critical events.
+- **Optional LLM orchestration.** OpenAI-compatible and Anthropic endpoints,
+  role-specific decision/critic/news models, JSON validation, and automatic
+  fallback to deterministic local models. Active model names are shown in the
+  sidebar, arena cards, leaderboard, report header, and model-stack panel.
+- **Async agent bridge.** Backtrader breach and assignment events are emitted to
+  an `AIAgentBridge`; an optional asyncio loop dispatches them with
+  `run_coroutine_threadsafe`, matching the SRS integration template.
+- Model recommendation catalog for frontier, fast/cheap, and offline deployments.
+- Regression tests for personas, policies, LLM HTTP clients, JSON parsing,
+  report/news fallbacks, arena scoring, bridge events, and the AI Arena UI.
+
+### Changed
+
+- Backtest NAV now carries the spot price, and trade records carry option
+  metadata (kind, strike, expiry) for trigger analysis.
+- Version bumped to 1.1.0; Docker image tag and Compose service updated.
+
 ## [1.0.1] - 2026-10-22
 
 ### Fixed

@@ -106,9 +106,28 @@ def test_data_vault_and_field_guide():
     assert any("Greeks" in item.value for item in at.markdown)
 
 
+def test_ai_arena_local_showdown():
+    at = _new_app()
+    at.radio(key="page_selector").set_value("arena").run()
+    _clean(at)
+    body = "\n".join(item.value for item in at.markdown)
+    assert "AlphaVanguard AI" in body
+    assert "derivlab-local-quant-core-v1" in body or "derivlab-local-critic-v1" in body
+    assert any(button.key == "arena_run" for button in at.button)
+    at.button(key="arena_run").click().run()
+    _clean(at)
+    assert at.session_state["arena_result"] is not None
+    assert len(at.get("plotly_chart")) >= 1
+    assert len(at.tabs) >= 4
+    body = "\n".join(item.value for item in at.markdown)
+    assert "Performance Summary" in body
+    assert "Tactical Critique" in body
+    assert "NEON TAPE" in body or "DESK WATCH" in body
+
+
 def test_sidebar_navigation_covers_every_page():
     at = _new_app()
-    for page in ("strategy", "backtest", "game", "data", "guide"):
+    for page in ("strategy", "backtest", "arena", "game", "data", "guide"):
         at.radio(key="page_selector").set_value(page).run()
         _clean(at)
 

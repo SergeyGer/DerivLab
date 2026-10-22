@@ -102,6 +102,8 @@ def test_screenshots_exist():
         "hold-position-alert.png",
         "hold-position-debrief.png",
         "data-vault.png",
+        "ai-arena.png",
+        "ai-arena-news.png",
     ):
         path = ROOT / "docs" / "screenshots" / name
         assert path.exists(), name
@@ -111,6 +113,23 @@ def test_screenshots_exist():
 @pytest.mark.parametrize("name", ["Makefile", "CONTRIBUTING.md", "LICENSE", ".env.example", "requirements-dev.txt"])
 def test_repository_files_exist(name):
     assert (ROOT / name).exists()
+
+
+def test_ai_agent_docs_and_env_contract():
+    env_text = (ROOT / ".env.example").read_text(encoding="utf-8")
+    for key in (
+        "DERIVLAB_LLM_PROVIDER",
+        "DERIVLAB_LLM_MODEL",
+        "DERIVLAB_LLM_API_KEY",
+        "DERIVLAB_CRITIC_MODEL",
+        "DERIVLAB_NEWS_MODEL",
+    ):
+        assert key in env_text
+    readme = (ROOT / "README.md").read_text(encoding="utf-8").lower()
+    for term in ("ai arena", "alphavanguard", "model", "claude", "qwen"):
+        assert term in readme
+    assert (ROOT / "derivlab" / "agents" / "arena.py").exists()
+    assert (ROOT / "derivlab" / "agents" / "bridge.py").exists()
 
 
 def test_live_game_uses_stable_frontend_identities():

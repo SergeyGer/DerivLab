@@ -20,8 +20,8 @@ services:
       context: .
       target: runtime
       args:
-        APP_VERSION: "1.0.1"
-    image: derivlab:1.0.1
+        APP_VERSION: "1.1.0"
+    image: derivlab:1.1.0
     container_name: derivlab-app
     restart: "no"
     init: true
@@ -34,6 +34,16 @@ services:
       DERIVLAB_SEED_DIR: /app/data/seed
       STREAMLIT_SERVER_FILE_WATCHER_TYPE: "none"
       TZ: "${TZ:-UTC}"
+      # Optional AI layer. Empty values keep the deterministic local models.
+      DERIVLAB_LLM_PROVIDER: "${DERIVLAB_LLM_PROVIDER:-local}"
+      DERIVLAB_LLM_BASE_URL: "${DERIVLAB_LLM_BASE_URL:-}"
+      DERIVLAB_LLM_API_KEY: "${DERIVLAB_LLM_API_KEY:-}"
+      DERIVLAB_LLM_MODEL: "${DERIVLAB_LLM_MODEL:-}"
+      DERIVLAB_DECISION_MODEL: "${DERIVLAB_DECISION_MODEL:-}"
+      DERIVLAB_CRITIC_MODEL: "${DERIVLAB_CRITIC_MODEL:-}"
+      DERIVLAB_NEWS_MODEL: "${DERIVLAB_NEWS_MODEL:-}"
+      DERIVLAB_LLM_TIMEOUT: "${DERIVLAB_LLM_TIMEOUT:-25}"
+      DERIVLAB_LLM_TEMPERATURE: "${DERIVLAB_LLM_TEMPERATURE:-0.55}"
     volumes:
       # Historical-data cache. Named volume => persists after container removal
       # and image rebuilds, without host permission mismatches.
@@ -61,7 +71,7 @@ services:
     build:
       context: .
       target: runtime
-    image: derivlab:1.0.1
+    image: derivlab:1.1.0
     restart: "no"
     init: true
     user: "1000:1000"

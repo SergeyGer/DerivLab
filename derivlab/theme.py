@@ -5,12 +5,15 @@ from __future__ import annotations
 import html
 import textwrap
 from collections.abc import Iterable
+from typing import Any
 
 import streamlit as st
 import streamlit.components.v1 as components
 
 from .config import COLORS, FONT_MONO, FONT_SANS
 from .metrics import ScoreCard
+
+LOCAL_MODEL_FALLBACK = "derivlab-local-quant-core-v1"
 
 CSS = f"""
 <style>
@@ -243,6 +246,233 @@ div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdo
     color: var(--dl-text);
     margin: 0;
 }}
+
+
+/* ---------- AI Arena ---------- */
+.dl-agent-grid {{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+    margin: 8px 0 16px 0;
+}}
+.dl-agent {{
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--dl-border);
+    border-radius: 13px;
+    padding: 16px 17px 14px 17px;
+    background:
+        radial-gradient(280px 140px at 100% 0%, color-mix(in srgb, var(--agent, #00E676) 13%, transparent), transparent 70%),
+        linear-gradient(155deg, #1B1D23 0%, #131418 100%);
+    border-top: 2px solid var(--agent, var(--dl-green));
+}}
+.dl-agent .a-top {{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}}
+.dl-agent .a-avatar {{
+    width: 33px;
+    height: 33px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    color: var(--agent, var(--dl-green));
+    border: 1px solid color-mix(in srgb, var(--agent, #00E676) 45%, transparent);
+    background: color-mix(in srgb, var(--agent, #00E676) 10%, transparent);
+    font-family: var(--dl-mono);
+    font-size: 1.05rem;
+}}
+.dl-agent .a-name {{
+    color: var(--dl-text);
+    font-weight: 700;
+    font-size: 0.92rem;
+    line-height: 1.2;
+}}
+.dl-agent .a-role {{
+    color: var(--dl-muted);
+    font-family: var(--dl-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+}}
+.dl-agent .a-mandate {{
+    color: var(--dl-silver);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    margin: 7px 0 10px 0;
+}}
+.dl-agent .a-rationale {{
+    color: #D8DCE4;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    margin: 8px 0 10px 0;
+    padding: 9px 10px;
+    border-radius: 8px;
+    background: rgba(12, 13, 16, 0.55);
+    border-left: 2px solid var(--agent, var(--dl-green));
+}}
+.dl-agent .a-models {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}}
+.dl-model-chip {{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid var(--dl-border);
+    border-radius: 6px;
+    background: rgba(12, 13, 16, 0.6);
+    color: var(--dl-silver);
+    font-family: var(--dl-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.02em;
+    padding: 4px 7px;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    line-height: 1.35;
+}}
+.dl-model-chip b {{ color: var(--agent, var(--dl-green)); font-weight: 600; }}
+.dl-model-stack {{
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin: 6px 0 12px 0;
+}}
+.dl-model-row {{
+    display: grid;
+    grid-template-columns: minmax(110px, 1fr) minmax(120px, 1.4fr) auto;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid var(--dl-border);
+    border-radius: 8px;
+    padding: 9px 11px;
+    background: rgba(30, 30, 30, 0.45);
+}}
+.dl-model-row .role {{
+    color: var(--dl-muted);
+    font-family: var(--dl-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}}
+.dl-model-row .model {{
+    color: var(--dl-text);
+    font-family: var(--dl-mono);
+    font-size: 0.72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}}
+.dl-model-row .mode {{
+    color: var(--dl-green);
+    border: 1px solid rgba(0, 230, 118, 0.28);
+    border-radius: 999px;
+    padding: 2px 7px;
+    font-family: var(--dl-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}}
+.dl-model-row .mode.local {{ color: var(--dl-amber); border-color: rgba(255, 209, 102, 0.28); }}
+.dl-news-grid {{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 8px 0 16px 0;
+}}
+.dl-news {{
+    position: relative;
+    border: 1px solid var(--dl-border);
+    border-left: 3px solid var(--dl-cyan);
+    border-radius: 10px;
+    background:
+        linear-gradient(160deg, #1A1C21 0%, #121317 100%);
+    padding: 14px 15px;
+    overflow: hidden;
+}}
+.dl-news::after {{
+    content: "";
+    position: absolute;
+    right: -30px;
+    top: -30px;
+    width: 90px;
+    height: 90px;
+    border: 1px solid rgba(0, 229, 255, 0.10);
+    transform: rotate(45deg);
+}}
+.dl-news.sev-high {{ border-left-color: var(--dl-pink); }}
+.dl-news.sev-medium {{ border-left-color: var(--dl-amber); }}
+.dl-news .n-meta {{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 7px;
+}}
+.dl-news .n-tag {{
+    color: var(--dl-cyan);
+    font-family: var(--dl-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}}
+.dl-news.sev-high .n-tag {{ color: var(--dl-pink); }}
+.dl-news.sev-medium .n-tag {{ color: var(--dl-amber); }}
+.dl-news .n-time {{
+    color: var(--dl-muted);
+    font-family: var(--dl-mono);
+    font-size: 0.56rem;
+    white-space: nowrap;
+}}
+.dl-news .n-headline {{
+    color: var(--dl-text);
+    font-weight: 700;
+    font-size: 0.84rem;
+    line-height: 1.35;
+    margin-bottom: 6px;
+}}
+.dl-news .n-detail {{
+    color: var(--dl-muted);
+    font-size: 0.74rem;
+    line-height: 1.5;
+}}
+.dl-report {{
+    background: linear-gradient(160deg, #1A1C21 0%, #121317 100%);
+    border: 1px solid var(--dl-border);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-top: 8px;
+}}
+.dl-report h3 {{
+    color: var(--dl-green);
+    font-size: 1rem;
+    margin: 16px 0 8px 0;
+}}
+.dl-report h3:first-child {{ margin-top: 0; }}
+.dl-report p, .dl-report li {{ color: #D8DCE4; font-size: 0.85rem; line-height: 1.62; }}
+.dl-report table {{ width: 100%; border-collapse: collapse; margin: 8px 0; }}
+.dl-report th, .dl-report td {{
+    border-bottom: 1px solid var(--dl-border);
+    padding: 6px 8px;
+    text-align: left;
+    font-size: 0.77rem;
+}}
+.dl-report th {{ color: var(--dl-muted); font-family: var(--dl-mono); font-size: 0.62rem; text-transform: uppercase; }}
+.dl-ai-status {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    align-items: center;
+    margin: 4px 0 10px 0;
+}}
+.dl-ai-status .dl-chip {{ font-size: 0.6rem; }}
 
 /* ---------- semantic blocks ---------- */
 .dl-hero {{
@@ -786,6 +1016,7 @@ div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdo
     .dl-hero {{ padding: 20px; }}
     .dl-edu {{ padding: 20px; }}
     .dl-mini-grid {{ grid-template-columns: 1fr; }}
+    .dl-news-grid {{ grid-template-columns: 1fr; }}
     .dl-badge {{ flex-direction: column; align-items: flex-start; gap: 10px; }}
 }}
 </style>
@@ -1010,6 +1241,131 @@ def sidebar_label(text: str) -> None:
 def sidebar_status(rows: list[tuple[str, str]]) -> None:
     body = "".join(f'<div class="row"><span>{_e(k)}</span><b>{_e(v)}</b></div>' for k, v in rows)
     html_block(f'<div class="dl-side-status">{body}</div>')
+
+
+def _value(item: Any, key: str, default: str = "") -> str:
+    if isinstance(item, dict):
+        return str(item.get(key, default))
+    return str(getattr(item, key, default))
+
+
+def agent_cards(agents: Iterable[Any], decisions: dict[str, Any] | None = None) -> None:
+    """Render rival desk cards with their active model names."""
+
+    cards = []
+    for agent in agents:
+        key = _value(agent, "key")
+        name = _value(agent, "name")
+        avatar = _value(agent, "avatar", "◈")
+        role = _value(agent, "role")
+        color = _value(agent, "color", COLORS["green"])
+        mandate = _value(agent, "mandate") or _value(agent, "policy_summary")
+        decision = (decisions or {}).get(key)
+        if decision is not None:
+            strategy = _value(decision, "strategy_name") or _value(decision, "strategy_key")
+            rationale = _value(decision, "rationale")
+            model = _value(decision, "model", LOCAL_MODEL_FALLBACK)
+            source = _value(decision, "source", "policy")
+            model_label = "Trading model"
+            strategy_chip = f'<span class="dl-model-chip">strategy <b>{_e(strategy)}</b></span>'
+            rationale_html = f'<div class="a-rationale">{_e(rationale)}</div>' if rationale else ""
+        else:
+            strategy_chip = ""
+            rationale_html = ""
+            model = _value(agent, "model", LOCAL_MODEL_FALLBACK)
+            source = _value(agent, "source", "policy")
+            model_label = "Decision model"
+        mode = "LLM" if source == "llm" else "LOCAL"
+        cards.append(
+            f"""
+            <div class="dl-agent" style="--agent:{_e(color)}">
+                <div class="a-top">
+                    <span class="a-avatar">{_e(avatar)}</span>
+                    <div><div class="a-name">{_e(name)}</div><div class="a-role">{_e(role)}</div></div>
+                </div>
+                <div class="a-mandate">{_e(mandate)}</div>
+                {rationale_html}
+                <div class="a-models">
+                    <span class="dl-model-chip">{_e(model_label)} <b>{_e(model)}</b> · {_e(mode)}</span>
+                    {strategy_chip}
+                </div>
+            </div>
+            """
+        )
+    html_block(f'<div class="dl-agent-grid">{"".join(cards)}</div>')
+
+
+def news_grid(items: Iterable[Any]) -> None:
+    """Render the NewsWire feed as cyberpunk terminal cards."""
+
+    cards = []
+    for item in items:
+        severity = _value(item, "severity", "medium").lower()
+        if severity not in {"high", "medium", "low"}:
+            severity = "medium"
+        cards.append(
+            f"""
+            <div class="dl-news sev-{_e(severity)}">
+                <div class="n-meta">
+                    <span class="n-tag">{_e(_value(item, "tag", "WIRE"))}</span>
+                    <span class="n-time">{_e(_value(item, "timestamp", "LIVE"))}</span>
+                </div>
+                <div class="n-headline">{_e(_value(item, "headline"))}</div>
+                <div class="n-detail">{_e(_value(item, "detail"))}</div>
+            </div>
+            """
+        )
+    html_block(f'<div class="dl-news-grid">{"".join(cards)}</div>')
+
+
+def model_stack(assignments: Iterable[Any], recommendations: Iterable[Any] = ()) -> None:
+    """Render the active model assignments and optional model advice."""
+
+    rows = []
+    for item in assignments:
+        mode = _value(item, "mode", "LOCAL")
+        local_class = " local" if mode.lower().startswith("local") else ""
+        rows.append(
+            f"""
+            <div class="dl-model-row">
+                <span class="role">{_e(_value(item, "role", "Model"))}</span>
+                <span class="model">{_e(_value(item, "model", LOCAL_MODEL_FALLBACK))}</span>
+                <span class="mode{local_class}">{_e(mode)}</span>
+            </div>
+            """
+        )
+    html_block(f'<div class="dl-model-stack">{"".join(rows)}</div>')
+    recs = list(recommendations)
+    if not recs:
+        return
+    cards = []
+    for rec in recs:
+        role = _value(rec, "role")
+        primary = _value(rec, "primary")
+        alternatives = getattr(rec, "alternatives", ())
+        if not alternatives and isinstance(rec, dict):
+            alternatives = rec.get("alternatives", ())
+        alt_text = " · ".join(str(item) for item in alternatives if item)
+        rationale = _value(rec, "rationale")
+        cards.append(
+            f"""
+            <div class="dl-mini">
+                <div class="m-label">{_e(role)}</div>
+                <div class="m-value"><b style="color:{COLORS['green']};">{_e(primary)}</b><br>
+                <span style="color:{COLORS['muted']};font-size:0.72rem;">{_e(alt_text)}</span><br><br>
+                {_e(rationale)}</div>
+            </div>
+            """
+        )
+    html_block(f'<div class="dl-mini-grid">{"".join(cards)}</div>')
+
+
+def ai_status(items: Iterable[tuple[str, str]]) -> None:
+    chips = "".join(
+        f'<span class="dl-chip {"green" if tone == "green" else tone}">{_e(label)}: {_e(value)}</span>'
+        for label, value, tone in items
+    )
+    html_block(f'<div class="dl-ai-status">{chips}</div>')
 
 
 def footer() -> None:

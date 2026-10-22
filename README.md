@@ -4,7 +4,7 @@
 
 ### Options & Futures Strategy Emulator
 
-**Learn, configure, and stress-test advanced trading strategies using synthetic option chains built from real market history.**
+**Learn, configure, and backtest advanced trading strategies — then trade against autonomous AI desks on synthetic option chains built from real market history.**
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.40-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
@@ -15,6 +15,7 @@
 
 [Quick Start](#-quick-start-run-anywhere-via-docker) ·
 [Dev Containers](#-vs-code-dev-containers-for-a-distributed-team) ·
+[AI Arena](#-ai-arena--autonomous-agents) ·
 [How it works](#-how-it-works) ·
 [Screens](#-a-tour-of-the-terminal) ·
 [Testing](#-testing) ·
@@ -43,6 +44,11 @@ strategies. It combines three ideas that are usually hard to demonstrate togethe
    deterministic offline fallback, and friendly error surfaces keep every screen
    usable even when Yahoo Finance rate-limits or the network is down.
 
+4. **An adversarial AI sandbox.** Three autonomous desks read the regime, choose
+   their own mandates, trade the same historical tape, and then explain — in
+   institutional language — why your book won or lost. A cyberpunk NewsWire covers
+   the cycle.
+
 It is intentionally **not** a trading system. It is a visual laboratory for
 understanding basis, premium, theta, vega, assignment, and the trade-off between
 income and drawdown.
@@ -59,6 +65,10 @@ income and drawdown.
 | **Backtrader event loop** | Daily data feed, expiry clock, whole-lot sizing, transaction costs, and a private portfolio ledger. |
 | **Payoff + equity** | Interactive expiration P&L, break-evens, max risk/reward, equity curve against buy & hold, drawdown, and cycle P&L. |
 | **Institutional KPIs** | Total return, CAGR, max drawdown, Sharpe, Sortino, win rate, profit factor, Calmar, premium collected, and fees. |
+| **AI Arena** | Three autonomous rival desks choose their own strategies, trade against you, and produce a ranked four-desk leaderboard. |
+| **AlphaVanguard AI** | A strict three-section performance review: comparative analysis, tactical critique of your errors, and an elite quant recommendation. |
+| **Cyberpunk NewsWire** | A four-item market wire generated from live metrics, model names, and critical triggers. |
+| **Optional LLM models** | OpenAI-compatible or Anthropic endpoints for decisions, critique, and news — with visible model names and a deterministic offline fallback. |
 | **“Hold the Position” game** | One simulated day per second, live risk alerts, roll/hold/liquidate decisions, and a thematic performance badge. |
 | **Financial cyberpunk UI** | Mandated dark palette, neon emerald/pink signals, terminal typography, and responsive KPI blocks. |
 | **Docker + Dev Containers** | Reproducible on Windows, macOS Intel, Apple Silicon, and Linux. No host paths or manual setup. |
@@ -82,8 +92,9 @@ Open **<http://localhost:8501>** in your browser.
 
 The first build takes a few minutes (native build tools are isolated in a
 builder stage). The app starts from the bundled five-year seed, so it works even
-without internet access. When you want fresh history, open **Data Vault →
-Refresh all (5Y)** or run:
+without internet access. The AI Arena runs out of the box with deterministic
+local models; add an API key later if you want live LLM critique and news. When
+you want fresh history, open **Data Vault → Refresh all (5Y)** or run:
 
 ```bash
 docker compose --profile seed run --rm derivlab-seed
@@ -179,6 +190,14 @@ download fails.
 | `DERIVLAB_PORT` | `8501` | Host port for Docker Compose |
 | `DERIVLAB_BIND_ADDR` | `127.0.0.1` | Host bind address for Compose |
 | `STREAMLIT_SERVER_FILE_WATCHER_TYPE` | `auto` | Set `none` in production images |
+| `DERIVLAB_LLM_PROVIDER` | `local` | `local`, `openai`, `anthropic`, `openai_compatible`, `ollama`, `lmstudio`, `vllm` |
+| `DERIVLAB_LLM_API_KEY` | empty | Optional provider key; never commit it |
+| `DERIVLAB_LLM_BASE_URL` | provider default | OpenAI-compatible base URL or `https://api.anthropic.com` |
+| `DERIVLAB_LLM_MODEL` | provider default | Shared model for all roles |
+| `DERIVLAB_DECISION_MODEL` | provider default | Model that chooses the three rival mandates |
+| `DERIVLAB_CRITIC_MODEL` | provider default | Model for AlphaVanguard’s performance review |
+| `DERIVLAB_NEWS_MODEL` | provider default | Model for the NewsWire |
+| `DERIVLAB_LLM_TIMEOUT` | `25` | Request timeout in seconds |
 
 ---
 
@@ -241,7 +260,31 @@ blocks and a full trade ledger.
   <img src="docs/screenshots/backtest-lab.png" alt="Backtest Lab with payoff and equity curves" width="100%">
 </p>
 
-### 3. Hold the Position — manage a live scenario
+### 3. AI Arena — trade against autonomous desks
+
+The AI Arena runs four portfolios over the same scenario:
+
+- your manual mandate,
+- **AlphaVanguard AI**, an institutional relative-value manager,
+- **VoltHawk AI**, a volatility-arbitrage desk,
+- **BasisDyne AI**, a carry and basis specialist.
+
+Each rival sees only the market context **before** the first bar. It picks a
+strategy, strikes, tenor, and risk expression, then runs through the same
+Backtrader and Black-Scholes engine as you. AlphaVanguard AI writes a strict
+three-section review, and NewsWire prints the closing tape. The screen always
+shows the exact model names in use — either the configured LLM or the local
+deterministic fallback.
+
+<p align="center">
+  <img src="docs/screenshots/ai-arena.png" alt="AI Arena: four-desk race, leaderboard, and AlphaVanguard verdict" width="100%">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/ai-arena-news.png" alt="AI Arena: AlphaVanguard critique, elite quant recommendation, and NewsWire" width="100%">
+</p>
+
+### 4. Hold the Position — manage a live scenario
 
 This is the gamified stress-test mode. Playback advances **one trading day per
 second**. When spot breaches a short strike or the drawdown threshold, the tape
@@ -265,7 +308,7 @@ Generator**, **Prudent Hedger**, or **Liquidated Speculator**.
   </tr>
 </table>
 
-### 4. Data Vault — real history, local first
+### 5. Data Vault — real history, local first
 
 Inspect coverage, freshness, HV30, and provenance for all 14 instruments. Refresh
 one symbol or the full universe; failures keep the last good cache and never
@@ -275,10 +318,143 @@ break the demo.
   <img src="docs/screenshots/data-vault.png" alt="Data Vault inventory and refresh controls" width="100%">
 </p>
 
-### 5. Field Guide — the vocabulary
+### 6. Field Guide — the vocabulary
 
 Greeks, contango, assignment, rolling, Sharpe/Sortino, the scoring model, and an
 honest list of simplifications. Useful as a teaching handout.
+
+---
+
+## 🤖 AI Arena & autonomous agents
+
+The AI layer is an optional **orchestration layer**, not a hidden dependency. The
+same screen works with zero credentials: in that mode three deterministic agents
+run the policies described below and the local critic/newswire generate the
+narrative. When an LLM is configured, the app routes decisions, critique, and news
+to the configured models and displays their names in the UI.
+
+### The rival desks
+
+| Desk | Mandate | Default policy | What it is trying to prove |
+|---|---|---|---|
+| **◈ AlphaVanguard AI** | Institutional relative-value PM | Sell premium with the trend in high-vol regimes; rotate to basis when trend and volatility conflict; use defined-risk condors when volatility is cheap. | That disciplined risk-adjusted carry beats raw directional exposure. |
+| **⚡ VoltHawk AI** | Volatility arbitrage | Buy straddles in high-vol / fast-trend regimes; sell iron condors when volatility is compressed and range-bound. | That the volatility regime, not the direction, is the real edge. |
+| **⛓ BasisDyne AI** | Carry and basis desk | Harvest synthetic futures basis across the curve, with a strong preference for delta-neutral carry. | That structural carry can beat a premium-selling book in a crash. |
+
+### How a cycle works
+
+1. The user chooses an asset, scenario, and manual mandate. Capital is identical
+   for every desk.
+2. `build_market_context` computes HV30, HV percentile, 20/60-day trend, drawdown,
+   and a vol ratio using **only bars before the scenario start** — no lookahead.
+3. Three policies (or one LLM JSON decision call) choose strategy, tenor, strike
+   offset, wing width, and basis premium for each rival.
+4. All four portfolios run through `run_backtest`, the same Backtrader event loop
+   and synthetic option chain used on the Backtest Lab screen.
+5. Backtrader emits `STRIKE_BREACH` and `ASSIGNMENT` events to an
+   `AIAgentBridge`. The trigger extractor also identifies IV spikes and the worst
+   drawdown.
+6. A composite score ranks the desks; AlphaVanguard AI writes the report and
+   NewsWire writes four headlines.
+7. The whole payload is stored in session state, so the verdict, leaderboard,
+   chart, trigger timeline, and model-stack tab stay consistent until the next run.
+
+### Backtrader → async AI bridge
+
+The backtester emits a normalized payload when a short strike is breached or an
+option is assigned. `AIAgentBridge.emit` records the event and, when an asyncio
+loop is attached, schedules `process_market_shock` with
+`asyncio.run_coroutine_threadsafe`:
+
+```python
+bridge = AIAgentBridge(event_loop=loop)
+run_backtest("AAPL", frame, config, event_bridge=bridge)
+# bridge.events -> STRIKE_BREACH / ASSIGNMENT payloads
+```
+
+The Streamlit app drains the bridge synchronously at the end of the cycle; a
+production deployment can replace the in-memory queue with Kafka, Redis Streams,
+or an agent-orchestration framework without touching the backtester.
+
+### The model names are always visible
+
+DerivLab shows the active model for every role:
+
+- the sidebar **AI desk** panel,
+- each rival card in the AI Arena,
+- the leaderboard’s **Model** column,
+- the AlphaVanguard and NewsWire headers,
+- the **Model stack** tab, with provider, source, latency, and fallback errors.
+
+The deterministic models are named explicitly:
+
+| Role | Local model name |
+|---|---|
+| Autonomous trade policy | `derivlab-local-quant-core-v1` |
+| AlphaVanguard critic | `derivlab-local-critic-v1` |
+| NewsWire | `derivlab-local-newswire-v1` |
+
+### Which models should you use?
+
+Model names move quickly; the app accepts any OpenAI-compatible or Anthropic
+model ID. These pairings are the recommended starting points:
+
+| Role | Primary recommendation | Strong alternatives | Why |
+|---|---|---|---|
+| **AlphaVanguard critic** | **OpenAI GPT-5** | Anthropic Claude Sonnet 4.5, Google Gemini 2.5 Pro | Best reasoning over several metrics, JSON/table discipline, and nuanced risk critique. This is the one role worth paying for a frontier model. |
+| **NewsWire headlines** | **OpenAI GPT-5 mini** | Claude Haiku 4.5, Gemini 2.5 Flash | Latency and cost matter more than deep reasoning; a mini/flash model keeps four headlines snappy. |
+| **Autonomous trade decisions** | **Deterministic local policy** | GPT-5 mini with JSON mode, Claude Haiku 4.5, Qwen3-32B | Trading decisions should be reproducible and auditable. Enable LLM decisions only when you want creative variety; the app validates and clamps every field and falls back per agent. |
+| **Offline / private deployment** | **Qwen3-32B via Ollama or vLLM** | Llama 3.3 70B, Mistral Small 3 | No data leaves your machine and there is no per-call cost. Quality is below frontier APIs but adequate for commentary and news. |
+
+**Recommendation:** keep the trading decisions local and deterministic by
+default; use GPT-5 or Claude Sonnet 4.5 for the critic, and a mini/flash model for
+the wire. This gives the most institutional-feeling commentary at a predictable
+cost. Use one model for all roles only when you are prototyping.
+
+### Configure a live model
+
+```bash
+# OpenAI
+export DERIVLAB_LLM_PROVIDER=openai
+export DERIVLAB_LLM_API_KEY=sk-...
+export DERIVLAB_DECISION_MODEL=gpt-5-mini
+export DERIVLAB_CRITIC_MODEL=gpt-5
+export DERIVLAB_NEWS_MODEL=gpt-5-mini
+
+# Anthropic
+export DERIVLAB_LLM_PROVIDER=anthropic
+export DERIVLAB_LLM_API_KEY=sk-ant-...
+export DERIVLAB_CRITIC_MODEL=claude-sonnet-4-5
+export DERIVLAB_NEWS_MODEL=claude-haiku-4-5
+
+# Local Ollama (no API key)
+export DERIVLAB_LLM_PROVIDER=ollama
+export DERIVLAB_LLM_BASE_URL=http://host.docker.internal:11434/v1
+export DERIVLAB_LLM_MODEL=qwen3:32b
+
+docker compose up -d --build
+```
+
+The client is deliberately provider-agnostic: it uses plain
+`POST /chat/completions` for OpenAI-compatible endpoints and `/v1/messages` for
+Anthropic. No provider SDK is installed, so the image stays smaller and adding a
+provider does not change the dependency graph.
+
+### Failure, cost, and privacy behavior
+
+- No key → deterministic local models; no network request is made.
+- Invalid JSON, missing sections, HTTP errors, and timeouts → the local critic
+  and wire are used for that call, with an explanation in the UI.
+- API keys are never rendered in the UI or logged. The Docker Compose file reads
+  the key from the host environment or a gitignored `.env`; production should use
+  Docker secrets because `docker inspect` can expose environment variables.
+- LLM output is untrusted Markdown. Streamlit renders it without raw HTML, and
+  every field is bounded before display.
+- The agent decisions can be kept fully deterministic (the default) for auditable
+  demos; LLM decisions are a single opt-in JSON call covering all three desks.
+
+See [docs/AI_AGENTS.md](docs/AI_AGENTS.md) for the deeper architecture and model
+selection notes.
 
 ---
 
@@ -294,10 +470,17 @@ flowchart LR
     HV --> BS["Black-Scholes<br/>price + Greeks"]
     BS --> BT["Backtrader event loop<br/>expiry · assignment · rolls"]
     BT --> METRICS["Metrics<br/>NAV · DD · Sharpe · Sortino"]
+    BT --> BRIDGE["AIAgentBridge<br/>breach · assignment"]
+    BRIDGE --> ARENA["AI Arena<br/>3 autonomous desks"]
+    ARENA --> CRITIC["AlphaVanguard AI<br/>3-section review"]
+    ARENA --> NEWS["NewsWire<br/>cyberpunk headlines"]
     METRICS --> UI["Streamlit terminal"]
     UI --> PAYOFF["Payoff profile"]
     UI --> EQUITY["Equity vs buy & hold"]
     UI --> GAME["Hold the Position"]
+    UI --> ARENA
+    CRITIC --> UI
+    NEWS --> UI
 ```
 
 ### Data pipeline
@@ -344,6 +527,16 @@ and capital loss. Holding suppresses a trigger until its condition clears.
 Rolling closes the current legs and re-opens at a fresh strike/expiry. The final
 score blends P&L, maximum drawdown, and premium efficiency; badges describe
 behaviour, not a recommendation.
+
+### AI agents
+
+The AI Arena reuses the same simulation engine, not a separate toy model. A
+pre-simulation context object is computed from the bars before the scenario; the
+desks choose mandates; four backtests run; the AIAgentBridge emits breach and
+assignment events; and the critic/news generators receive a compact JSON payload
+with both portfolios, the leaderboard, and the trigger timeline. Local policies
+and local narrative generation are always available; a configured LLM replaces
+only the narrative/decision layers and the UI shows exactly which model is active.
 
 ---
 
@@ -425,8 +618,13 @@ Coverage includes:
   capital, extreme rates/fees/strikes, synthetic data, short history.
 - **Game:** scenario slicing, alerts, hold/roll/liquidate, assignment and
   completion paths, scoring, low-capital errors.
-- **UI:** Streamlit `AppTest` walks every page, all strategies, several assets,
-  the game flow and debrief, low-capital warnings, Data Vault, and Field Guide.
+- **AI agents:** all persona policies, regime changes, mandate validation, JSON
+  parsing, OpenAI/Anthropic client payloads, retries, timeouts, local fallbacks,
+  strict three-section reports, NewsWire validation, async bridge dispatch,
+  trigger extraction, scoring, and four-desk arena runs (local and mocked LLM).
+- **UI:** Streamlit `AppTest` walks every page including the AI Arena, all
+  strategies, several assets, the game flow and debrief, low-capital warnings,
+  Data Vault, and Field Guide.
 - **Deployment:** Compose restart policy, multi-stage Dockerfile, Dev Container
   JSON, executable post-create scripts, seed completeness, README, screenshots.
 
@@ -451,14 +649,23 @@ DerivLab/
 │   ├── metrics.py               # Sharpe/Sortino/MDD and game score
 │   ├── charts.py                # Plotly payoff, equity, price path, gauge
 │   ├── theme.py                 # CSS, terminal components, KPI blocks
-│   └── ui.py                    # Five screens and navigation
+│   ├── agents/
+│   │   ├── llm.py               # Provider settings, models, HTTP client
+│   │   ├── personas.py          # Three autonomous desks + policies
+│   │   ├── bridge.py            # Async Backtrader event bridge
+│   │   ├── commentary.py        # AlphaVanguard report + NewsWire
+│   │   ├── arena.py             # Four-desk arena and leaderboard
+│   │   └── parsing.py           # Tolerant JSON extraction
+│   └── ui.py                    # Six screens and navigation
 ├── data/
 │   ├── seed/                    # Committed 5Y demo snapshot (Parquet)
 │   └── cache/                   # Per-machine runtime cache (gitignored)
 ├── tests/                       # Offline pytest + AppTest suite
 ├── .devcontainer/               # Reproducible Dev Container + scripts
 ├── .vscode/                     # Tasks, debugging, recommended extensions
-├── docs/screenshots/            # README screenshots
+├── docs/
+│   ├── AI_AGENTS.md             # Agent architecture and model advice
+│   └── screenshots/             # README screenshots
 ├── Dockerfile                   # Multi-stage python:3.10-slim image
 ├── docker-compose.yml           # app + optional seed profile, restart: "no"
 ├── Makefile
@@ -473,12 +680,15 @@ DerivLab/
 1. **Strategy Deck:** select **Covered Call** and read the educational card.
 2. **Backtest Lab:** switch to **AAPL**, keep 30 days and 5% OTM, then compare
    the payoff and equity curve. Change IV or fees to show the sensitivity.
-3. **Hold the Position:** launch **AAPL / Covered Call / 2022 Rate Shock**, press
+3. **AI Arena:** run **AAPL / 2022 Rate Shock** with your own Covered Call mandate.
+   Show the four-desk race, the model names, the AlphaVanguard verdict, and the
+   NewsWire. Repeat with **LLM critic** enabled if a key is configured.
+4. **Hold the Position:** launch **AAPL / Covered Call / 2022 Rate Shock**, press
    **Fast-forward → alert**, then demonstrate **Roll**, **Hold**, and
    **Liquidate** in separate runs.
-4. **Data Vault:** show the 14/14 inventory, source provenance, and the refresh
+5. **Data Vault:** show the 14/14 inventory, source provenance, and the refresh
    controls. Mention that the seed keeps the demo offline-safe.
-5. **Field Guide:** close with the Greeks and the limitations card.
+6. **Field Guide:** close with the Greeks and the limitations card.
 
 ---
 
@@ -492,10 +702,13 @@ DerivLab/
 | Refresh fails with 429 | Yahoo is rate-limiting. Keep the existing cache; retry later or use the seed |
 | “Below one lot” warning | Increase capital or choose a cheaper instrument; the warning includes a one-click fix |
 | Dev Container permission error | Rebuild the container; post-create re-creates `data/cache` with the developer UID |
-| Browser shows `removeChild` / `NotFoundError` | This is a browser auto-translation / DOM mutation issue in live React views. DerivLab 1.0.1 sets `notranslate` markers and stable chart identities; do a hard refresh and disable auto-translation for the tab |
+| Browser shows `removeChild` / `NotFoundError` | This is a browser auto-translation / DOM mutation issue in live React views. DerivLab 1.0.1+ sets `notranslate` markers and stable chart identities; do a hard refresh and disable auto-translation for the tab |
 | Want to reset the demo data | `docker compose down -v` (removes the cache volume) then `up --build` |
 | Need LAN access | `DERIVLAB_BIND_ADDR=0.0.0.0 docker compose up` and use the host IP |
 | Translation is desired | Translate the README or take screenshots; the live terminal opts out of automatic machine translation to protect its React DOM |
+| AI Arena shows local model names | No LLM key is configured. Set `DERIVLAB_LLM_*` and rebuild/restart; the local models are intentional and fully functional |
+| LLM critic falls back to local | Check the **Model stack** tab for the exact error (timeout, invalid JSON, missing sections); the local critic is used automatically |
+| LLM costs are higher than expected | Disable **Use configured LLM for critique and news** and/or keep **LLM trade decisions** off; the local path is free |
 
 ---
 
@@ -508,6 +721,13 @@ Margin calls, borrow costs, taxes, dividend timing, and exchange-specific
 contract specifications are simplified or omitted. The basis trade uses an
 idealized frictionless convergence hedge, so its risk-adjusted ratios are an
 upper bound.
+
+The AI Arena is a simulation of institutional competition, not a live trading
+desk. The rival policies are simplified heuristics; configured LLMs can
+hallucinate or produce inconsistent prose, so their outputs are validated,
+rendered as untrusted Markdown, and backed by deterministic local fallbacks. The
+model names shown in the UI are the models actually selected by configuration,
+but no LLM is required for the app to work.
 
 **Educational simulator only. Synthetic option chains are not executable market
 quotes. This is not investment advice and nothing in this repository is a

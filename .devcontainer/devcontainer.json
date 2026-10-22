@@ -23,7 +23,14 @@
     "PYTHONPATH": "${containerWorkspaceFolder}",
     "DERIVLAB_DATA_DIR": "${containerWorkspaceFolder}/data/cache",
     "DERIVLAB_SEED_DIR": "${containerWorkspaceFolder}/data/seed",
-    "STREAMLIT_SERVER_FILE_WATCHER_TYPE": "auto"
+    "STREAMLIT_SERVER_FILE_WATCHER_TYPE": "auto",
+    "DERIVLAB_LLM_PROVIDER": "${localEnv:DERIVLAB_LLM_PROVIDER}",
+    "DERIVLAB_LLM_BASE_URL": "${localEnv:DERIVLAB_LLM_BASE_URL}",
+    "DERIVLAB_LLM_API_KEY": "${localEnv:DERIVLAB_LLM_API_KEY}",
+    "DERIVLAB_LLM_MODEL": "${localEnv:DERIVLAB_LLM_MODEL}",
+    "DERIVLAB_DECISION_MODEL": "${localEnv:DERIVLAB_DECISION_MODEL}",
+    "DERIVLAB_CRITIC_MODEL": "${localEnv:DERIVLAB_CRITIC_MODEL}",
+    "DERIVLAB_NEWS_MODEL": "${localEnv:DERIVLAB_NEWS_MODEL}"
   },
   "customizations": {
     "vscode": {

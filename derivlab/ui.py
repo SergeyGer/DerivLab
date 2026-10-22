@@ -10,11 +10,19 @@ from __future__ import annotations
 import logging
 import math
 from collections.abc import Callable
+from dataclasses import replace
 
 import pandas as pd
 import streamlit as st
 
 from . import charts, theme
+from .agents.arena import ArenaError, ArenaResult, default_model_stack, run_arena
+from .agents.llm import (
+    LOCAL_DECISION_MODEL,
+    MODEL_RECOMMENDATIONS,
+    LLMSettings,
+)
+from .agents.personas import AGENTS
 from .backtest_engine import BacktestResult, run_backtest
 from .config import (
     APP_NAME,
@@ -53,10 +61,11 @@ from .strategies import (
 
 LOGGER = logging.getLogger(__name__)
 
-PAGE_KEYS = ("strategy", "backtest", "game", "data", "guide")
+PAGE_KEYS = ("strategy", "backtest", "arena", "game", "data", "guide")
 PAGE_LABELS = {
     "strategy": "◈  Strategy Deck",
     "backtest": "⌁  Backtest Lab",
+    "arena": "✶  AI Arena",
     "game": "◉  Hold the Position",
     "data": "▤  Data Vault",
     "guide": "❖  Field Guide",
@@ -138,6 +147,7 @@ def _init_state() -> None:
         "game": None,
         "game_playing": False,
         "last_refresh": None,
+        "arena_result": None,
         "run_variant": 0,
     }
     for key, value in defaults.items():
@@ -312,6 +322,24 @@ def _render_sidebar() -> None:
         if stats.get("synthetic"):
             st.caption(f"⚠ {stats['synthetic']} asset(s) use synthetic fallback data.")
         st.button("Open Data Vault", on_click=_goto_button("data"), use_container_width=True)
+
+        theme.sidebar_label("AI desk")
+        arena_settings = LLMSettings.from_env()
+        theme.sidebar_status(
+            [
+                ("Mode", "LLM" if arena_settings.enabled else "Local core"),
+                (
+                    "Critic",
+                    arena_settings.critic_model if arena_settings.enabled else "local-critic-v1",
+                ),
+                (
+                    "News",
+                    arena_settings.news_model if arena_settings.enabled else "local-newswire-v1",
+                ),
+            ]
+        )
+        st.button("Open AI Arena", on_click=_goto_button("arena"), use_container_width=True)
+
         theme.sidebar_label("Disclaimer")
         st.caption(
             "Educational simulator. Synthetic option chains, not executable quotes. "
@@ -1219,6 +1247,482 @@ def render_game() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Page 3b - AI Arena
+# ---------------------------------------------------------------------------
+
+
+def _arena_stack(
+    settings: LLMSettings,
+    use_llm: bool,
+    use_llm_decisions: bool,
+) -> list[dict[str, object]]:
+    effective = settings if (settings.enabled and use_llm) else LLMSettings.local()
+    return default_model_stack(
+        effective,
+        use_llm_decisions=bool(use_llm and use_llm_decisions),
+    )
+
+
+def _arena_desk_cards(
+    settings: LLMSettings,
+    use_llm: bool,
+    use_llm_decisions: bool,
+) -> list[dict[str, object]]:
+    llm_decides = bool(settings.enabled and use_llm and use_llm_decisions)
+    model = settings.decision_model if llm_decides else LOCAL_DECISION_MODEL
+    source = "llm" if llm_decides else "policy"
+    return [
+        {
+            "key": agent.key,
+            "name": agent.name,
+            "avatar": agent.avatar,
+            "role": agent.role,
+            "color": agent.color,
+            "mandate": agent.mandate,
+            "model": model,
+            "source": source,
+        }
+        for agent in AGENTS
+    ]
+
+
+def _arena_leaderboard_view(result: ArenaResult) -> pd.DataFrame:
+    frame = result.leaderboard.copy()
+    frame["Return"] = frame["Return"].map(lambda value: f"{float(value) * 100:+.1f}%")
+    frame["Max Drawdown"] = frame["Max Drawdown"].map(lambda value: f"{float(value) * 100:.1f}%")
+    frame["Sharpe"] = frame["Sharpe"].map(lambda value: f"{float(value):.2f}")
+    frame["Sortino"] = frame["Sortino"].map(lambda value: f"{float(value):.2f}")
+    frame["Win Rate"] = frame["Win Rate"].map(lambda value: f"{float(value) * 100:.0f}%")
+    frame["Premium"] = frame["Premium"].map(
+        lambda value: format_money(float(value), result.asset.currency, compact=True)
+    )
+    frame["Score"] = frame["Score"].map(lambda value: f"{float(value):.1f}")
+    frame["Model"] = frame["Model"].astype(str).str.slice(0, 64)
+    return frame[
+        ["Rank", "Desk", "Strategy", "Model", "Return", "Max Drawdown", "Sharpe", "Premium", "Score"]
+    ]
+
+
+def _arena_kpis(result: ArenaResult) -> list[str]:
+    user = result.user
+    alpha = result.alpha
+    winner = result.winner
+    winner_label = "You" if winner.is_user else winner.name.replace(" AI", "")
+    return [
+        theme.kpi_card(
+            "User rank",
+            f"#{result.user_rank}/4",
+            f"{user.score:.1f} / 100 score",
+            "green" if result.user_rank == 1 else "amber",
+        ),
+        theme.kpi_card("Cycle winner", winner_label, f"{winner.score:.1f} / 100", "green"),
+        theme.kpi_card(
+            "Your return",
+            format_pct(user.return_pct),
+            f"Max DD {user.max_dd_pct * 100:.1f}%",
+            "green" if user.return_pct >= 0 else "pink",
+        ),
+        theme.kpi_card(
+            "AlphaVanguard",
+            format_pct(alpha.return_pct),
+            f"Sharpe {alpha.sharpe:.2f}",
+            "green" if alpha.return_pct >= 0 else "pink",
+        ),
+        theme.kpi_card(
+            "Gap vs Alpha",
+            f"{result.alpha_gap * 100:+.1f} pp",
+            "Return difference",
+            "green" if result.alpha_gap >= 0 else "pink",
+        ),
+        theme.kpi_card(
+            "Critical triggers",
+            f"{len(result.triggers)}",
+            "Breach / assignment / IV",
+            "pink" if result.triggers else "muted",
+        ),
+    ]
+
+
+def _render_arena_result(result: ArenaResult) -> None:
+    theme.status_bar(
+        [
+            ("Asset", f"{result.asset.symbol} · {result.asset.asset_class}"),
+            ("Scenario", result.scenario),
+            ("Winner", result.winner.name),
+            ("Your rank", f"#{result.user_rank}/4"),
+            ("Use LLM", "yes" if result.use_llm else "no"),
+        ],
+        live="AI ARENA · CYCLE COMPLETE",
+    )
+    decision_models = {entry.model for entry in result.agents}
+    theme.ai_status(
+        [
+            (
+                "Trade models",
+                ", ".join(sorted(decision_models)) if len(decision_models) > 1 else next(iter(decision_models)),
+                "green",
+            ),
+            ("Critic model", result.report.model, "cyan"),
+            ("News model", result.news.model, "magenta"),
+        ]
+    )
+    theme.kpi_grid(_arena_kpis(result))
+
+    theme.section_header("Desk race", "Four mandates, one historical tape")
+    _plot(charts.arena_equity_figure(result, height=430), key="arena_equity")
+    st.caption(
+        "All four desks start with the same capital and the same historical window. "
+        "The user desk is the dashed white line; AI mandates are solid."
+    )
+
+    theme.section_header("Leaderboard", "Composite score", "Return + drawdown + Sharpe + premium efficiency.")
+    st.dataframe(
+        _arena_leaderboard_view(result),
+        hide_index=True,
+        use_container_width=True,
+        column_config={
+            "Model": st.column_config.TextColumn("Model", width="large"),
+            "Desk": st.column_config.TextColumn("Desk", width="medium"),
+            "Score": st.column_config.TextColumn("Score", width="small"),
+        },
+    )
+    theme.note(
+        "The score is a teaching device, not an investment rating. The table shows the exact "
+        "decision model for every desk; open the Model stack tab for critic/news roles and latency.",
+        tone="amber",
+    )
+
+    theme.section_header(
+        "AlphaVanguard AI · rival fund manager",
+        "Tactical performance review",
+        f"Critic model: {result.report.model} · source: {result.report.source}",
+    )
+    with st.container(border=True):
+        st.markdown(result.report.markdown)
+    if result.report.source == "local" and result.settings.enabled and result.use_llm:
+        st.caption(f"LLM fallback: {result.report.error or 'local deterministic critic used.'}")
+    else:
+        st.caption(
+            "This report is generated against the supplied metrics and critical triggers; "
+            "it is educational commentary, not investment advice."
+        )
+
+    theme.section_header(
+        "NewsWire · cyberpunk market wire",
+        "After-hours transmissions",
+        f"News model: {result.news.model} · source: {result.news.source}",
+    )
+    theme.news_grid(result.news.items)
+    if result.news.error:
+        st.caption(f"Wire fallback: {result.news.error}")
+
+    tabs = st.tabs(["Agent mandates", "Trigger timeline", "Model stack", "Market context"])
+    with tabs[0]:
+        theme.section_header("Mandates", "How each rival desk played the cycle")
+        decisions = {entry.key: entry.decision for entry in result.agents if entry.decision}
+        theme.agent_cards(result.agents, decisions=decisions)
+        mandate_rows = [
+            {
+                "Desk": entry.name,
+                "Model": entry.model,
+                "Strategy": entry.strategy_name,
+                "Tenor": f"{entry.decision.tenor_days}d" if entry.decision else "—",
+                "Strike offset": f"{entry.decision.strike_offset_pct:+.1f}%" if entry.decision else "—",
+                "Rationale": entry.decision.rationale if entry.decision else "—",
+            }
+            for entry in result.agents
+        ]
+        st.dataframe(pd.DataFrame(mandate_rows), hide_index=True, use_container_width=True)
+        if result.warnings:
+            for warning in result.warnings:
+                st.warning(warning)
+    with tabs[1]:
+        theme.section_header("Triggers", "What the critic saw", "Strike breaches, assignments, IV spikes, and drawdowns.")
+        if result.triggers:
+            trigger_rows = pd.DataFrame(
+                [
+                    {
+                        "Date": item.get("date"),
+                        "Type": str(item.get("kind", "")).replace("_", " ").title(),
+                        "Event": item.get("title"),
+                        "Detail": item.get("detail"),
+                        "Severity": item.get("severity"),
+                    }
+                    for item in result.triggers
+                ]
+            )
+            st.dataframe(trigger_rows, hide_index=True, use_container_width=True)
+        else:
+            st.info("No critical trigger was recorded for the user desk in this scenario.")
+    with tabs[2]:
+        theme.section_header("Model stack", "Active models and recommendations")
+        theme.model_stack(result.model_stack, MODEL_RECOMMENDATIONS)
+        llm_rows = []
+        status = result.llm_status
+        decision = status.get("decision_result")
+        llm_rows.append(
+            {
+                "Stage": "Agent trade decisions",
+                "Model": decision.get("model") if isinstance(decision, dict) else LOCAL_DECISION_MODEL,
+                "Source": decision.get("source") if isinstance(decision, dict) else "local",
+                "Latency ms": decision.get("latency_ms") if isinstance(decision, dict) else 0,
+                "Error": decision.get("error") if isinstance(decision, dict) else "",
+            }
+        )
+        llm_rows.append(
+            {
+                "Stage": "AlphaVanguard critic",
+                "Model": result.report.model,
+                "Source": result.report.source,
+                "Latency ms": result.report.latency_ms,
+                "Error": result.report.error,
+            }
+        )
+        llm_rows.append(
+            {
+                "Stage": "NewsWire",
+                "Model": result.news.model,
+                "Source": result.news.source,
+                "Latency ms": result.news.latency_ms,
+                "Error": result.news.error,
+            }
+        )
+        st.dataframe(pd.DataFrame(llm_rows), hide_index=True, use_container_width=True)
+        st.caption(
+            "Set DERIVLAB_LLM_PROVIDER, DERIVLAB_LLM_MODEL, and DERIVLAB_LLM_API_KEY to use "
+            "a live LLM. Without a key, every output is deterministic and local."
+        )
+    with tabs[3]:
+        theme.section_header("Pre-simulation context", "What the agents knew before the first bar")
+        context = result.context
+        theme.kpi_grid(
+            [
+                theme.kpi_card("HV30", f"{context.hv30 * 100:.1f}%", "Pre-scenario", "magenta"),
+                theme.kpi_card("HV percentile", f"{context.hv_percentile * 100:.0f}%", "Trailing regime", "cyan"),
+                theme.kpi_card("Trend 20d", format_pct(context.trend20), context.trend_label, "green" if context.trend20 >= 0 else "pink"),
+                theme.kpi_card("Trend 60d", format_pct(context.trend60), "Structural drift", "green" if context.trend60 >= 0 else "pink"),
+                theme.kpi_card("Drawdown 120d", format_pct(context.drawdown120), "Prior peak", "pink"),
+                theme.kpi_card("Vol ratio", f"{context.vol_ratio:.2f}×", "HV / trailing mean", "amber"),
+                theme.kpi_card("Regime", context.regime.title(), context.trend_label.title(), "cyan"),
+                theme.kpi_card("Capital", _money(context.capital, result.asset), "Per desk", "muted"),
+            ]
+        )
+        st.caption(
+            "The context is computed strictly before the scenario start; no future bars are "
+            "visible to the autonomous desks."
+        )
+
+    if st.button("↺ Clear AI results", key="arena_clear", use_container_width=True):
+        st.session_state.arena_result = None
+        st.rerun()
+
+
+def render_arena() -> None:
+    theme.hero(
+        "AI Arena · institutional simulation",
+        "Trade against the machine.",
+        "Three autonomous desks read the regime, choose their own mandates, and trade the same "
+        "historical tape as you. AlphaVanguard AI reviews the cycle; NewsWire prints the wire.",
+        chips=[
+            ("3 autonomous desks", "green"),
+            ("LLM optional", "cyan"),
+            ("Cyberpunk news wire", "magenta"),
+            ("Local fallback", "amber"),
+        ],
+    )
+
+    settings = LLMSettings.from_env()
+    if "arena_asset" not in st.session_state:
+        st.session_state.arena_asset = st.session_state.get("bt_asset", "AAPL")
+    if st.session_state.get("arena_strategy") not in STRATEGY_EDU_DB:
+        st.session_state.arena_strategy = st.session_state.active_strategy
+
+    left, right = st.columns([0.34, 0.66], gap="large")
+    with left:
+        theme.section_header("User mandate", "Your desk")
+        if st.session_state.get("arena_strategy") != st.session_state.active_strategy:
+            st.session_state.arena_strategy = st.session_state.active_strategy
+        st.selectbox(
+            "Strategy",
+            STRATEGY_ORDER,
+            key="arena_strategy",
+            format_func=lambda key: STRATEGY_EDU_DB[key]["label"],
+            on_change=lambda: _sync_strategy_key("arena_strategy"),
+        )
+        st.selectbox(
+            "Asset",
+            ASSET_SYMBOLS,
+            key="arena_asset",
+            format_func=_asset_format,
+        )
+        strategy = st.session_state.arena_strategy
+        symbol = st.session_state.arena_asset
+        asset = get_asset(symbol)
+        try:
+            md = load_market_cached(symbol, _revision())
+        except Exception:
+            LOGGER.exception("AI Arena market load failed")
+            st.error("Market data could not be loaded. Open the Data Vault and refresh the cache.")
+            return
+
+        choices = scenario_choices(md)
+        if not choices:
+            st.error("No historical scenario has enough data for the AI Arena.")
+            return
+        choice_ids = [choice["id"] for choice in choices]
+        if st.session_state.get("arena_scenario") not in choice_ids:
+            st.session_state.arena_scenario = "rate_shock_2022" if "rate_shock_2022" in choice_ids else choice_ids[0]
+        st.selectbox(
+            "Historical scenario",
+            choice_ids,
+            key="arena_scenario",
+            format_func=lambda cid: next(
+                (f"{choice['label']} · {choice['days']} days" for choice in choices if choice["id"] == cid),
+                cid,
+            ),
+        )
+        scenario = next(choice for choice in choices if choice["id"] == st.session_state.arena_scenario)
+        st.caption(scenario.get("blurb", ""))
+        frame = scenario_frame(md, scenario)
+        if frame.empty:
+            st.error("This scenario has no usable bars in the current cache.")
+            return
+
+        user_config = replace(
+            _render_sim_controls(symbol, strategy, asset, md, prefix="arena", include_lookback=False),
+            lookback_years=10,
+        )
+        cap_key = f"arena_capital_{symbol}"
+        start_ts = frame.index[0]
+        try:
+            hv0 = float(md.hv_series().loc[start_ts])
+        except (KeyError, TypeError, ValueError):
+            hv0 = md.latest_hv()
+        if not math.isfinite(hv0) or hv0 <= 0:
+            hv0 = asset.base_iv
+        preview = build_position_plan(
+            user_config,
+            float(frame["Close"].iloc[0]),
+            hv0,
+            start_ts,
+        )
+        _capital_warning(preview, user_config, cap_key)
+
+        use_llm = False
+        use_llm_decisions = False
+        if settings.enabled:
+            use_llm = st.checkbox(
+                "Use configured LLM for critique and news",
+                value=True,
+                key="arena_use_llm",
+                help="One critic call and one news call per cycle; results are cached in session state.",
+            )
+            use_llm_decisions = st.checkbox(
+                "Let the LLM choose the three agent mandates",
+                value=False,
+                key="arena_use_llm_decisions",
+                help=(
+                    "Off = deterministic, reproducible policies. On = one JSON decision call for "
+                    "all three desks, with local fallback for invalid outputs."
+                ),
+            )
+        else:
+            theme.note(
+                "No LLM credentials detected. The arena runs with the deterministic local quant "
+                "core and local critic/newswire. Configure DERIVLAB_LLM_API_KEY to enable live "
+                "models; everything still works offline.",
+                tone="amber",
+            )
+        stack = _arena_stack(settings, use_llm, use_llm_decisions)
+        st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
+        run_disabled = preview.contracts == 0
+        if st.button(
+            "▶ Run AI showdown",
+            type="primary",
+            use_container_width=True,
+            disabled=run_disabled,
+            key="arena_run",
+        ):
+            with st.spinner("Four desks are trading. AlphaVanguard is writing the review..."):
+                try:
+                    result = run_arena(
+                        md,
+                        scenario,
+                        user_config,
+                        settings=settings,
+                        use_llm=use_llm,
+                        use_llm_decisions=use_llm_decisions,
+                    )
+                except ArenaError as exc:
+                    st.warning(str(exc))
+                except Exception as exc:
+                    LOGGER.exception("AI Arena failed")
+                    st.error(
+                        "The AI Arena could not complete this cycle. Try another scenario or capital "
+                        "allocation; the cached data is safe."
+                    )
+                    with st.expander("Diagnostics"):
+                        st.code(f"{type(exc).__name__}: {exc}")
+                else:
+                    st.session_state.arena_result = result
+                    st.rerun()
+        if st.session_state.get("arena_result") is not None:
+            st.button(
+                "Clear AI results",
+                key="arena_clear_setup",
+                on_click=_set_state,
+                args=("arena_result", None),
+                use_container_width=True,
+            )
+        st.caption(
+            "The user desk and all three agents start with the same capital and the same "
+            "historical window. Agent context is computed strictly before the first bar."
+        )
+
+    with right:
+        theme.status_bar(
+            [
+                ("Asset", f"{asset.symbol} · {asset.asset_class}"),
+                ("Scenario", scenario.get("label", "—")),
+                ("Capital", _money(user_config.capital, asset)),
+                ("AI mode", "LLM" if settings.enabled and use_llm else "Local core"),
+                ("Decision", "LLM" if settings.enabled and use_llm and use_llm_decisions else "Policy"),
+            ],
+            live="AI DESK READY",
+        )
+        theme.section_header(
+            "Rival roster",
+            "Three autonomous mandates",
+            "Each desk sees the same pre-simulation regime and chooses independently.",
+        )
+        theme.agent_cards(_arena_desk_cards(settings, use_llm, use_llm_decisions))
+        theme.section_header("Model stack", "Name tags for the machines")
+        theme.model_stack(stack)
+        with st.expander("Recommended models for each role", expanded=False):
+            theme.model_stack([], MODEL_RECOMMENDATIONS)
+            st.caption(
+                "The app always displays the active model names. Without an API key, the "
+                "deterministic local models are used and every output remains reproducible."
+            )
+        theme.note(
+            "The LLM is optional. The autonomous desks, the three-section critic report, and "
+            "the NewsWire all have deterministic local implementations, so the sandbox works "
+            "offline and never exposes technical errors when an API is unavailable.",
+        )
+        if st.session_state.get("arena_result") is not None:
+            last = st.session_state.arena_result
+            if isinstance(last, ArenaResult):
+                st.success(
+                    f"Last cycle: {last.winner.name} won · your rank #{last.user_rank}/4 · "
+                    f"critic {last.report.model}."
+                )
+
+    result = st.session_state.get("arena_result")
+    if isinstance(result, ArenaResult):
+        _render_arena_result(result)
+
+
+# ---------------------------------------------------------------------------
 # Page 4 - Data Vault
 # ---------------------------------------------------------------------------
 
@@ -1385,6 +1889,7 @@ def _finish_refresh(report: RefreshReport) -> None:
         for result in report.results
     ]
     st.cache_data.clear()
+    st.session_state.arena_result = None
     st.session_state.data_revision = _revision() + 1
     st.rerun()
 
@@ -1544,6 +2049,8 @@ def main() -> None:
             render_strategy_deck()
         elif page == "backtest":
             render_backtest()
+        elif page == "arena":
+            render_arena()
         elif page == "game":
             render_game()
         elif page == "data":

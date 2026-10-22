@@ -90,6 +90,9 @@ class TradeRecord:
     cash_flow: float
     fees: float
     note: str = ""
+    kind: str = ""
+    strike: float = 0.0
+    expiry: str = ""
 
 
 @dataclass
@@ -110,6 +113,9 @@ class PortfolioLedger:
         cash_flow: float,
         fees: float,
         note: str = "",
+        kind: str = "",
+        strike: float = 0.0,
+        expiry: str = "",
     ) -> None:
         self.trades.append(
             TradeRecord(
@@ -121,6 +127,9 @@ class PortfolioLedger:
                 cash_flow=float(cash_flow),
                 fees=float(fees),
                 note=note,
+                kind=kind,
+                strike=float(strike),
+                expiry=expiry,
             )
         )
 
@@ -141,6 +150,9 @@ class PortfolioLedger:
             gross,
             fee,
             "Open synthetic option",
+            kind=leg.kind,
+            strike=leg.strike,
+            expiry=leg.expiry.isoformat(),
         )
         return LiveOption(
             kind=leg.kind,
@@ -170,6 +182,9 @@ class PortfolioLedger:
             gross,
             fee,
             note,
+            kind=live.kind,
+            strike=live.strike,
+            expiry=live.expiry.isoformat(),
         )
         return gross
 
@@ -187,6 +202,9 @@ class PortfolioLedger:
             gross,
             fee,
             note,
+            kind=live.kind,
+            strike=live.strike,
+            expiry=live.expiry.isoformat(),
         )
         return gross
 
@@ -307,8 +325,17 @@ class BacktestResult:
 class BacktestController:
     """State machine that opens, marks, settles, and rolls strategy cycles."""
 
-    def __init__(self, asset: Asset, config: StrategyConfig, frame: pd.DataFrame, hv_series: pd.Series) -> None:
+    def __init__(
+        self,
+        asset: Asset,
+        config: StrategyConfig,
+        frame: pd.DataFrame,
+        hv_series: pd.Series,
+        event_bridge=None,
+    ) -> None:
         self.asset = asset
+        self.event_bridge = event_bridge
+        self.triggered_breaches: set[tuple[str, float, str, str]] = set()
         self.config = config
         self.frame = frame
         self.hv_series = hv_series.reindex(frame.index).ffill()
@@ -392,6 +419,7 @@ class BacktestController:
         row = {
             "date": pd.Timestamp(ts),
             "nav": nav,
+            "spot": float(spot),
             "cash": self.ledger.cash,
             "spot_value": self.ledger.spot_units * spot,
             "option_value": sum(live.value_at(self._option_price(live, ts, spot)) for live in self.open_legs),
@@ -410,6 +438,77 @@ class BacktestController:
         self.events.append(
             {"date": pd.Timestamp(ts), "kind": kind, "title": title, "detail": detail}
         )
+
+    def _emit_bridge(
+        self,
+        ts: pd.Timestamp,
+        event: str,
+        title: str,
+        detail: str,
+        *,
+        spot: float,
+        strike: float = 0.0,
+        severity: str = "medium",
+    ) -> None:
+        if self.event_bridge is None:
+            return
+        payload = {
+            "event": event,
+            "date": pd.Timestamp(ts).date().isoformat(),
+            "spot_price": float(spot),
+            "strike_price": float(strike),
+            "message": detail,
+            "severity": severity,
+            "title": title,
+            "strategy": self.config.strategy_key,
+            "agent": "user_desk",
+        }
+        try:
+            self.event_bridge.emit(payload)
+        except Exception as exc:  # pragma: no cover - bridge boundary
+            LOGGER.debug("AI bridge emit failed: %s", exc)
+
+    def _detect_short_strike_breaches(self, ts: pd.Timestamp, spot: float) -> None:
+        """Emit one AI bridge event when a short option strike is breached."""
+
+        for live in self.open_legs:
+            if live.qty >= 0:
+                continue
+            breached = (
+                live.kind == "call" and spot >= live.strike
+            ) or (
+                live.kind == "put" and spot <= live.strike
+            )
+            if not breached:
+                continue
+            key = (
+                live.kind,
+                round(float(live.strike), 6),
+                live.expiry.isoformat(),
+                live.entry_date.isoformat(),
+            )
+            if key in self.triggered_breaches:
+                continue
+            self.triggered_breaches.add(key)
+            distance = (
+                spot / live.strike - 1.0
+                if live.kind == "call"
+                else live.strike / spot - 1.0
+            )
+            detail = (
+                f"Spot {spot:,.2f} breached the short {live.kind} strike "
+                f"{live.strike:,.2f} ({distance * 100:+.2f}% beyond the strike)."
+            )
+            self._add_event(ts, "breach", f"Short {live.kind} strike breached", detail)
+            self._emit_bridge(
+                ts,
+                "STRIKE_BREACH",
+                f"Short {live.kind} strike breached",
+                detail,
+                spot=spot,
+                strike=live.strike,
+                severity="high",
+            )
 
     def _build_plan(self, ts: pd.Timestamp, spot: float, contracts: int | None = None) -> PositionPlan:
         plan = build_position_plan(
@@ -537,29 +636,39 @@ class BacktestController:
                 self.assignments += 1
                 assigned = True
                 status = "assigned"
-                self._add_event(
+                assignment_detail = (
+                    f"Bought {units:,.0f} units at the strike after spot closed at "
+                    f"{spot:,.2f}. The reserved cash was deployed; no new puts are written."
+                )
+                self._add_event(ts, "assignment", "Put assigned", assignment_detail)
+                self._emit_bridge(
                     ts,
-                    "assignment",
+                    "ASSIGNMENT",
                     "Put assigned",
-                    (
-                        f"Bought {units:,.0f} units at the strike after spot closed at "
-                        f"{spot:,.2f}. The reserved cash was deployed; no new puts are written."
-                    ),
+                    assignment_detail,
+                    spot=spot,
+                    strike=live.strike,
+                    severity="high",
                 )
             else:
                 self.ledger.settle_option(live, spot, self.config.fee_rate, ts)
                 self.open_legs.remove(live)
                 if self.config.strategy_key == "covered_call" and live.kind == "call" and intrinsic > 0:
                     self.assignments += 1
-                    self._add_event(
+                    call_detail = (
+                        f"Spot {spot:,.2f} closed above the {live.strike:,.2f} strike. "
+                        "The synthetic engine cash-settles the call and keeps the shares; "
+                        "economically this matches being called away and re-buying."
+                    )
+                    self._add_event(ts, "assignment", "Call finished in the money", call_detail)
+                    self._emit_bridge(
                         ts,
-                        "assignment",
+                        "ASSIGNMENT",
                         "Call finished in the money",
-                        (
-                            f"Spot {spot:,.2f} closed above the {live.strike:,.2f} strike. "
-                            "The synthetic engine cash-settles the call and keeps the shares; "
-                            "economically this matches being called away and re-buying."
-                        ),
+                        call_detail,
+                        spot=spot,
+                        strike=live.strike,
+                        severity="high",
                     )
 
         if self.open_future is not None:
@@ -602,12 +711,14 @@ class BacktestController:
             self.started = True
             self._open_cycle(ts, spot)
             self._record(ts, spot)
+            self._detect_short_strike_breaches(ts, spot)
             return
         if self.cycle_expiry is not None and ts.date() >= self.cycle_expiry:
             self._close_cycle(ts, spot)
             if not self.stop_new_cycles:
                 self._open_cycle(ts, spot)
         self._record(ts, spot)
+        self._detect_short_strike_breaches(ts, spot)
 
     def finalize(self) -> None:
         if self.finished:
@@ -686,7 +797,10 @@ def _build_result(
 
     trades = pd.DataFrame(
         [t.__dict__ for t in controller.ledger.trades],
-        columns=["as_of", "action", "instrument", "quantity", "price", "cash_flow", "fees", "note"],
+        columns=[
+            "as_of", "action", "instrument", "quantity", "price", "cash_flow",
+            "fees", "note", "kind", "strike", "expiry",
+        ],
     )
     if not trades.empty:
         trades = trades.sort_values("as_of").reset_index(drop=True)
@@ -738,9 +852,14 @@ def _build_result(
     )
 
 
-def _run_with_backtrader(asset: Asset, frame: pd.DataFrame, config: StrategyConfig) -> tuple[BacktestController, str]:
+def _run_with_backtrader(
+    asset: Asset,
+    frame: pd.DataFrame,
+    config: StrategyConfig,
+    event_bridge=None,
+) -> tuple[BacktestController, str]:
     hv_series = compute_hv_series(frame["Close"], window=HV_WINDOW).fillna(asset.base_iv)
-    controller = BacktestController(asset, config, frame, hv_series)
+    controller = BacktestController(asset, config, frame, hv_series, event_bridge=event_bridge)
     cerebro = bt.Cerebro(stdstats=False, maxcpus=1, runonce=False)
     feed = bt.feeds.PandasData(
         dataname=frame,
@@ -766,6 +885,7 @@ def run_backtest(
     frame: pd.DataFrame,
     config: StrategyConfig,
     lookback_years: int | None = None,
+    event_bridge=None,
 ) -> BacktestResult:
     """Run a full historical simulation for one strategy configuration."""
     asset = get_asset(asset_symbol)
@@ -780,12 +900,12 @@ def run_backtest(
         raise ValueError("Not enough market history for a meaningful backtest (need 30+ rows).")
 
     try:
-        controller, engine = _run_with_backtrader(asset, sliced, config)
+        controller, engine = _run_with_backtrader(asset, sliced, config, event_bridge=event_bridge)
         return _build_result(controller, sliced, config, asset, engine)
     except Exception as exc:
         LOGGER.exception("Backtrader run failed; using the direct event loop: %s", exc)
         hv_series = compute_hv_series(sliced["Close"], window=HV_WINDOW).fillna(asset.base_iv)
-        controller = BacktestController(asset, config, sliced, hv_series)
+        controller = BacktestController(asset, config, sliced, hv_series, event_bridge=event_bridge)
         for ts, row in sliced.iterrows():
             controller.on_bar(pd.Timestamp(ts), float(row["Close"]))
         controller.finalize()

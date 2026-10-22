@@ -524,3 +524,59 @@ def empty_figure(message: str = "Run a simulation to populate this chart.", heig
         font=dict(color=COLORS["muted"], size=13),
     )
     return fig
+
+
+def arena_equity_figure(arena, height: int = 430) -> go.Figure:
+    """Four-desk equity race for the AI Arena.
+
+    The function is duck-typed on ``arena.entries`` so the chart layer does not
+    need to import the agent package.
+    """
+    fig = go.Figure()
+    entries = getattr(arena, "entries", [])
+    if not entries:
+        _base_layout(fig, height)
+        fig.add_annotation(
+            text="Run the AI Arena to populate the desk race.",
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
+            showarrow=False,
+            font=dict(color=COLORS["muted"], size=13),
+        )
+        return fig
+
+    for entry in entries:
+        nav = entry.result.nav
+        if nav.empty:
+            continue
+        initial = float(entry.result.initial_capital) or 1.0
+        index = nav["nav"] / initial * 100.0
+        is_user = bool(getattr(entry, "is_user", False))
+        fig.add_trace(
+            go.Scatter(
+                x=nav.index,
+                y=index,
+                mode="lines",
+                name=f"{entry.name} · {entry.strategy_name}",
+                line=dict(
+                    color=str(getattr(entry, "color", COLORS["green"])),
+                    width=2.4 if is_user else 1.8,
+                    dash="dash" if is_user else "solid",
+                ),
+                hovertemplate="%{y:.1f}<extra></extra>",
+            )
+        )
+    fig.add_hline(
+        y=100,
+        line=dict(color=COLORS["border"], width=1, dash="dot"),
+        annotation_text="Start",
+        annotation_position="bottom right",
+        annotation_font=dict(color=COLORS["muted"], size=9),
+    )
+    _base_layout(fig, height)
+    fig.update_yaxes(title_text="Index (100 = start)", tickformat=",.0f")
+    fig.update_xaxes(title_text="Historical scenario", tickformat="%b %Y")
+    fig.update_layout(hovermode="x unified")
+    return fig
