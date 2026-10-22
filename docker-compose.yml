@@ -1,0 +1,89 @@
+# DerivLab container stack.
+#
+# Auto-start on server reboot is deliberately disabled for every service:
+# `restart: "no"` is explicit, and there is no automatic-restart policy
+# anywhere in this file. Containers start only when a human runs:
+#
+#   docker compose up --build -d
+#
+# and can be stopped again with:
+#
+#   docker compose down
+#
+# The named cache volume survives `down` and image rebuilds.
+
+name: derivlab
+
+services:
+  derivlab-app:
+    build:
+      context: .
+      target: runtime
+      args:
+        APP_VERSION: "1.0.0"
+    image: derivlab:1.0.0
+    container_name: derivlab-app
+    restart: "no"
+    init: true
+    ports:
+      # Safe localhost default. Set DERIVLAB_BIND_ADDR=0.0.0.0 only when you
+      # intentionally want to expose the terminal on your LAN / server.
+      - "${DERIVLAB_BIND_ADDR:-127.0.0.1}:${DERIVLAB_PORT:-8501}:8501"
+    environment:
+      DERIVLAB_DATA_DIR: /app/data/cache
+      DERIVLAB_SEED_DIR: /app/data/seed
+      STREAMLIT_SERVER_FILE_WATCHER_TYPE: "none"
+      TZ: "${TZ:-UTC}"
+    volumes:
+      # Historical-data cache. Named volume => persists after container removal
+      # and image rebuilds, without host permission mismatches.
+      - derivlab-cache:/app/data/cache
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8501/_stcore/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 25s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional one-shot refresher. It is behind the "seed" profile, so it never
+  # starts with the default `docker compose up`.
+  #
+  #   docker compose --profile seed run --rm derivlab-seed
+  derivlab-seed:
+    profiles: ["seed"]
+    build:
+      context: .
+      target: runtime
+    image: derivlab:1.0.0
+    restart: "no"
+    init: true
+    user: "1000:1000"
+    command:
+      - python
+      - -m
+      - derivlab.data_preprocessor
+      - --all
+      - --years
+      - "5"
+      - --output
+      - cache
+    environment:
+      DERIVLAB_DATA_DIR: /app/data/cache
+      DERIVLAB_SEED_DIR: /app/data/seed
+    volumes:
+      - derivlab-cache:/app/data/cache
+    healthcheck:
+      disable: true
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  derivlab-cache:
+    name: derivlab-cache

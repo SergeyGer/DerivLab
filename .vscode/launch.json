@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "DerivLab: debug Streamlit",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "streamlit",
+      "args": ["run", "app.py", "--server.port", "8501"],
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}",
+        "DERIVLAB_DATA_DIR": "${workspaceFolder}/data/cache",
+        "DERIVLAB_SEED_DIR": "${workspaceFolder}/data/seed"
+      }
+    }
+  ]
+}

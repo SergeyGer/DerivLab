@@ -1,0 +1,107 @@
+{
+  "app": "DerivLab",
+  "generated_at": "2026-10-22T08:21:56+00:00",
+  "source": "yfinance (Yahoo Finance)",
+  "years_requested": 5,
+  "assets": [
+    {
+      "symbol": "AAPL",
+      "rows": 1254,
+      "start": "2021-10-22",
+      "end": "2026-10-21",
+      "file": "AAPL.parquet"
+    },
+    {
+      "symbol": "MSFT",
+      "rows": 1254,
+      "start": "2021-10-22",
+      "end": "2026-10-21",
+      "file": "MSFT.parquet"
+    },
+    {
+      "symbol": "NVDA",
+      "rows": 1254,
+      "start": "2021-10-22",
+      "end": "2026-10-21",
+      "file": "NVDA.parquet"
+    },
+    {
+      "symbol": "SAP.DE",
+      "rows": 1274,
+      "start": "2021-10-22",
+      "end": "2026-10-22",
+      "file": "SAP_DE.parquet"
+    },
+    {
+      "symbol": "ALV.DE",
+      "rows": 1274,
+      "start": "2021-10-22",
+      "end": "2026-10-22",
+      "file": "ALV_DE.parquet"
+    },
+    {
+      "symbol": "ASML.AS",
+      "rows": 1280,
+      "start": "2021-10-22",
+      "end": "2026-10-22",
+      "file": "ASML_AS.parquet"
+    },
+    {
+      "symbol": "EURUSD=X",
+      "rows": 1300,
+      "start": "2021-10-22",
+      "end": "2026-10-22",
+      "file": "EURUSD_X.parquet"
+    },
+    {
+      "symbol": "JPY=X",
+      "rows": 1300,
+      "start": "2021-10-22",
+      "end": "2026-10-22",
+      "file": "JPY_X.parquet"
+    },
+    {
+      "symbol": "GC=F",
+      "rows": 1258,
+      "start": "2021-10-22",
+      "end": "2026-10-22",
+      "file": "GC_F.parquet"
+    },
+    {
+      "symbol": "BZ=F",
+      "rows": 1257,
+      "start": "2021-10-22",
+      "end": "2026-10-22",
+      "file": "BZ_F.parquet"
+    },
+    {
+      "symbol": "^GSPC",
+      "rows": 1254,
+      "start": "2021-10-22",
+      "end": "2026-10-21",
+      "file": "GSPC.parquet"
+    },
+    {
+      "symbol": "^DJI",
+      "rows": 1254,
+      "start": "2021-10-22",
+      "end": "2026-10-21",
+      "file": "DJI.parquet"
+    },
+    {
+      "symbol": "^GDAXI",
+      "rows": 1275,
+      "start": "2021-10-22",
+      "end": "2026-10-22",
+      "file": "GDAXI.parquet"
+    },
+    {
+      "symbol": "^FCHI",
+      "rows": 1281,
+      "start": "2021-10-22",
+      "end": "2026-10-22",
+      "file": "FCHI.parquet"
+    }
+  ],
+  "last_refresh": null
+}

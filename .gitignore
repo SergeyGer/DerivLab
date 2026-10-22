@@ -1,0 +1,36 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# Runtime data cache (the bundled seed is committed)
+data/cache/*
+!data/cache/.gitkeep
+data/yf_cache/
+
+# Browser / tooling caches
+.cache/
+.docker/
+node_modules/
+playwright-report/
+test-results/
+
+# Secrets and local overrides
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+.idea/

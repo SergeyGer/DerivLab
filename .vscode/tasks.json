@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "DerivLab: run Streamlit",
+      "type": "shell",
+      "command": "streamlit run app.py --server.port 8501",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "DerivLab: run tests",
+      "type": "shell",
+      "command": "python -m pytest -q",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "DerivLab: refresh seed data",
+      "type": "shell",
+      "command": "python -m derivlab.data_preprocessor --all --years 5 --output both",
+      "problemMatcher": []
+    },
+    {
+      "label": "DerivLab: lint",
+      "type": "shell",
+      "command": "ruff check .",
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "name": "DerivLab · Python 3.10",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "remoteUser": "developer",
+  "updateRemoteUserUID": true,
+  "workspaceFolder": "/workspaces/DerivLab",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/DerivLab,type=bind,consistency=cached",
+  "forwardPorts": [8501],
+  "portsAttributes": {
+    "8501": {
+      "label": "DerivLab Streamlit",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+  "shutdownAction": "stopContainer",
+  "remoteEnv": {
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONPATH": "${containerWorkspaceFolder}",
+    "DERIVLAB_DATA_DIR": "${containerWorkspaceFolder}/data/cache",
+    "DERIVLAB_SEED_DIR": "${containerWorkspaceFolder}/data/seed",
+    "STREAMLIT_SERVER_FILE_WATCHER_TYPE": "auto"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy",
+        "charliermarsh.ruff",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/opt/venv/bin/python",
+        "python.testing.pytestEnabled": true,
+        "python.testing.pytestArgs": ["tests"],
+        "python.analysis.typeCheckingMode": "basic",
+        "editor.rulers": [110],
+        "editor.formatOnSave": false,
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/.pytest_cache": true,
+          "**/.ruff_cache": true
+        },
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}
