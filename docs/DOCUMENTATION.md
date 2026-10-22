@@ -23,7 +23,8 @@ docker run --rm -p 8501:8501 ghcr.io/sergeyger/derivlab:latest
 The image is built by `.github/workflows/publish-image.yml` for
 `linux/amd64` and `linux/arm64`, tagged `latest`, the release version, and a
 `sha-<short>` tag. It contains no API key and runs the deterministic local models
-by default.
+by default. After the first publish, verify the package is public before treating
+the one-command path as a supported entry point.
 
 ### Streamlit Community Cloud
 
