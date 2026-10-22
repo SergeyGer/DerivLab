@@ -324,7 +324,7 @@ div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdo
 
 .dl-kpi-grid {{
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(142px, 1fr));
     gap: 12px;
     margin: 6px 0 16px 0;
 }}

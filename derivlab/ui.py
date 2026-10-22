@@ -211,7 +211,7 @@ def _metric_cards_result(result: BacktestResult) -> list[str]:
         theme.kpi_card(
             "Buy & hold",
             format_pct(bench),
-            f"{result.start.date()} → {result.end.date()}",
+            f"{result.config.lookback_years}-year window",
             "green" if bench >= 0 else "pink",
         ),
         theme.kpi_card(
@@ -233,12 +233,6 @@ def _metric_cards_result(result: BacktestResult) -> list[str]:
             _money(result.premium_collected, asset),
             "Gross short-option premium",
             "green" if result.premium_collected > 0 else "muted",
-        ),
-        theme.kpi_card(
-            "Costs paid",
-            _money(result.fees_paid, asset),
-            f"{result.assignments} assignment(s)",
-            "muted",
         ),
     ]
     return cards
@@ -988,7 +982,6 @@ def _game_kpis(game: ScenarioGame) -> list[str]:
         theme.kpi_card("Premium collected", _money(game.premium_collected, asset), "Gross", "green"),
         theme.kpi_card("Rolls", f"{game.rolls}", "Tactical adjustments", "amber"),
         theme.kpi_card("Holds", f"{game.holds}", "Let it ride", "muted"),
-        theme.kpi_card("Fees", _money(game.fees_paid, asset), "Paid to the market", "muted"),
         theme.kpi_card("Tape", f"{game.days_elapsed}/{game.days_total}", f"{game.progress * 100:.0f}% complete", "cyan"),
     ]
 
@@ -1049,7 +1042,7 @@ def _render_game_live(game: ScenarioGame) -> None:
             else:
                 st.error(game.last_action_message or "The roll could not be executed.")
         if decision[1].button(
-            "⏸ Hold / Do Nothing",
+            "Hold / Do Nothing",
             key="decision_hold",
             use_container_width=True,
             help="Let the contract ride toward expiration. Holding suppresses this alert until the condition clears.",
@@ -1058,7 +1051,7 @@ def _render_game_live(game: ScenarioGame) -> None:
             st.session_state.game_playing = True
             st.rerun()
         if decision[2].button(
-            "⏹ Liquidate / Close",
+            "Liquidate / Close",
             key="decision_liquidate",
             use_container_width=True,
             help="Close the underlying and every derivative leg immediately.",
@@ -1080,7 +1073,7 @@ def _render_game_live(game: ScenarioGame) -> None:
     if controls[0].button("▶ Play", key="game_play", type="primary", disabled=(not running or playing), use_container_width=True):
         st.session_state.game_playing = True
         st.rerun()
-    if controls[1].button("⏸ Pause", key="game_pause", disabled=(not playing), use_container_width=True):
+    if controls[1].button("Pause", key="game_pause", disabled=(not playing), use_container_width=True):
         st.session_state.game_playing = False
         st.rerun()
     if controls[2].button("Step +1 day", key="game_step", disabled=not running, use_container_width=True):
