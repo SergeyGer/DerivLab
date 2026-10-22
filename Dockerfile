@@ -11,7 +11,9 @@ ARG APP_VERSION
 LABEL org.opencontainers.image.title="DerivLab" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.description="Options & futures strategy emulator with synthetic Black-Scholes chains" \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.source="https://github.com/SergeyGer/DerivLab" \
+      org.opencontainers.image.documentation="https://github.com/SergeyGer/DerivLab/wiki"
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -37,7 +39,9 @@ ARG APP_VERSION
 LABEL org.opencontainers.image.title="DerivLab" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.description="Options & futures strategy emulator with synthetic Black-Scholes chains" \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.source="https://github.com/SergeyGer/DerivLab" \
+      org.opencontainers.image.documentation="https://github.com/SergeyGer/DerivLab/wiki"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

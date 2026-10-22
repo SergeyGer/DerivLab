@@ -24,6 +24,13 @@ All notable changes to DerivLab are documented here.
 - Model recommendation catalog for frontier, fast/cheap, and offline deployments.
 - Regression tests for personas, policies, LLM HTTP clients, JSON parsing,
   report/news fallbacks, arena scoring, bridge events, and the AI Arena UI.
+- **One-command delivery.** Multi-arch GHCR image, `docker run` Quick Start, and
+  a Streamlit Community Cloud one-click deploy badge.
+- **Coverage signal.** CI coverage gate (80%), generated badge (85%), and report
+  artifacts.
+- **Documentation infrastructure.** Docs workflow with local link/ADR/version
+  checks, lychee external-link checking, ADR log, versioning policy, and a
+  1280×640 social preview asset.
 
 ### Changed
 

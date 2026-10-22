@@ -142,6 +142,27 @@ def test_demo_media_is_present():
     assert poster.exists() and poster.stat().st_size > 100_000
 
 
+def test_documentation_infrastructure_assets():
+    for name in (
+        "docs/social-preview.png",
+        "docs/badges/coverage.svg",
+        "docs/VERSIONING.md",
+        "docs/DOCUMENTATION.md",
+        "docs/adr/README.md",
+    ):
+        path = ROOT / name
+        assert path.exists(), name
+        assert path.stat().st_size > 200, name
+    adrs = sorted((ROOT / "docs" / "adr").glob("000[0-9]-*.md"))
+    assert len(adrs) >= 5
+    index = (ROOT / "docs" / "adr" / "README.md").read_text(encoding="utf-8")
+    for adr in adrs:
+        assert adr.name in index
+        text = adr.read_text(encoding="utf-8")
+        for heading in ("## Status", "## Context", "## Decision", "## Consequences"):
+            assert heading in text, f"{adr.name}: {heading}"
+
+
 def test_live_game_uses_stable_frontend_identities():
     ui = (ROOT / "derivlab" / "ui.py").read_text(encoding="utf-8")
     theme = (ROOT / "derivlab" / "theme.py").read_text(encoding="utf-8")
