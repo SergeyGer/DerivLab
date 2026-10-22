@@ -33,8 +33,25 @@ jobs:
           pip install -r requirements-dev.txt
       - name: Lint
         run: ruff check .
-      - name: Tests
-        run: python -m pytest -q
+      - name: Tests with coverage
+        run: |
+          python -m pytest -q \
+            --cov=derivlab \
+            --cov-report=term \
+            --cov-report=xml \
+            --cov-fail-under=80
+      - name: Export coverage JSON
+        run: python -m coverage json -o coverage.json
+      - name: Verify coverage badge
+        run: python scripts/update_coverage_badge.py --check
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.xml
+            coverage.json
+          if-no-files-found: error
 
   docker:
     name: Docker image and health

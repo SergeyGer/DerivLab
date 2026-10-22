@@ -1,0 +1,35 @@
+name: Docs
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Docs · links + ADR
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate local links, ADRs, versioning, and assets
+        run: python scripts/validate_docs.py
+
+      - name: Check external links
+        uses: lycheeverse/lychee-action@v2.9.0
+        with:
+          args: --config lychee.toml --no-progress --verbose README.md docs
+          fail: true

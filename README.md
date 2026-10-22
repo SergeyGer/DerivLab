@@ -16,8 +16,17 @@ consequence you can see.
 
 [![CI](https://github.com/SergeyGer/DerivLab/actions/workflows/ci.yml/badge.svg)](https://github.com/SergeyGer/DerivLab/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/SergeyGer/DerivLab/actions/workflows/codeql.yml/badge.svg)](https://github.com/SergeyGer/DerivLab/actions/workflows/codeql.yml)
+[![Coverage](docs/badges/coverage.svg)](https://github.com/SergeyGer/DerivLab/wiki/Testing-and-CI)
 [![License: MIT](https://img.shields.io/badge/license-MIT-00E676)](LICENSE)
-[![No market data subscription](https://img.shields.io/badge/data-none%20required-00E5FF)](#-private-by-default)
+
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.40-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![Backtrader](https://img.shields.io/badge/engine-Backtrader-4B8BBE)](https://www.backtrader.com/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![OpenAI](https://img.shields.io/badge/AI-OpenAI%20%C2%B7%20local%20fallback-412991?logo=openai&logoColor=white)](https://github.com/SergeyGer/DerivLab/wiki/AI-Model-Guide)
+
+[![Try the offline demo](https://img.shields.io/badge/Try%20the%20offline%20demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://share.streamlit.io/deploy?repository=https://github.com/SergeyGer/DerivLab&branch=main&mainModule=app.py)
+[![GHCR](https://img.shields.io/badge/ghcr.io-sergeyger%2Fderivlab-2496ED?logo=docker&logoColor=white)](https://github.com/SergeyGer/DerivLab/pkgs/container/derivlab)
 
 </div>
 
@@ -208,8 +217,23 @@ something you want to explore.
 
 ## 🚀 Quick Start
 
-The fastest path is **Docker**. You do not need Python, a database, or a market
-data account.
+### ⚡ One command. No clone. No build.
+
+The image is published to GitHub Container Registry. If Docker is installed:
+
+```bash
+docker run --rm -p 8501:8501 ghcr.io/sergeyger/derivlab:latest
+```
+
+Open **http://localhost:8501**. The image runs the bundled seed and the
+deterministic local AI models; **no API key is required**.
+
+> Prefer a zero-install widget? Use the
+> [**Try the offline demo**](https://share.streamlit.io/deploy?repository=https://github.com/SergeyGer/DerivLab&branch=main&mainModule=app.py)
+> button: Streamlit Community Cloud builds the app from GitHub and runs it with
+> local models. The first deploy requires authorizing Streamlit with GitHub.
+
+### Build from source
 
 ```bash
 git clone https://github.com/SergeyGer/DerivLab.git
@@ -217,9 +241,7 @@ cd DerivLab
 docker compose up --build
 ```
 
-Open **http://localhost:8501** and you are on the trading floor.
-
-- First build takes a few minutes; later starts are fast.
+- First source build takes a few minutes; later starts are fast.
 - The demo works without internet access thanks to the bundled seed.
 - The AI Arena works immediately with local models.
 - To use a live OpenAI model, add your key to a local `.env` and restart.
@@ -244,8 +266,11 @@ The README is the story. The **Wiki** is the manual.
 | Understand the AI desks and the async bridge | [AI Agents](https://github.com/SergeyGer/DerivLab/wiki/AI-Agents) |
 | Choose a model for the critic and the wire | [AI Model Guide](https://github.com/SergeyGer/DerivLab/wiki/AI-Model-Guide) |
 | Understand the engine, data, and strategy math | [Architecture](https://github.com/SergeyGer/DerivLab/wiki/Architecture) |
-| Run the tests, CI, and CodeQL | [Testing & CI](https://github.com/SergeyGer/DerivLab/wiki/Testing-and-CI) |
+| Run the tests, CI, CodeQL, and coverage | [Testing & CI](https://github.com/SergeyGer/DerivLab/wiki/Testing-and-CI) |
 | Deploy it for a team | [Deployment](https://github.com/SergeyGer/DerivLab/wiki/Deployment) |
+| Read the architecture decisions | [ADR index](docs/adr/README.md) |
+| Understand the documentation system | [Documentation infrastructure](docs/DOCUMENTATION.md) |
+| Plan a release | [Versioning & releases](docs/VERSIONING.md) |
 | Fix a problem | [Troubleshooting](https://github.com/SergeyGer/DerivLab/wiki/Troubleshooting) |
 
 ---

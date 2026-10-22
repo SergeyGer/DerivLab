@@ -1,0 +1,7 @@
+max_concurrency = 8
+accept = [200, 201, 202, 203, 204, 206, 300, 301, 302, 303, 304, 307, 308, 403, 429]
+exclude = [
+  "^https://share\\.streamlit\\.io/deploy.*$",
+  "^https://github\\.com/SergeyGer/DerivLab/settings/social-preview$",
+  "^https://github\\.com/SergeyGer/DerivLab/pkgs/container/derivlab$",
+]
