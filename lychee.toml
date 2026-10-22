@@ -4,4 +4,6 @@ exclude = [
   "^https://share\\.streamlit\\.io/deploy.*$",
   "^https://github\\.com/SergeyGer/DerivLab/settings/social-preview$",
   "^https://github\\.com/SergeyGer/DerivLab/pkgs/container/derivlab$",
+  "^http://localhost(:[0-9]+)?/.*$",
+  "^http://127\\.0\\.0\\.1(:[0-9]+)?/.*$",
 ]
