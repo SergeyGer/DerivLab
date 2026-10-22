@@ -2,6 +2,14 @@
 
 from __future__ import annotations
 
+import os
+
+# The developer's local .env may contain a live OpenAI key. Tests must never
+# spend money or depend on network availability, so force the local models
+# before any application import reads the environment.
+os.environ["DERIVLAB_LLM_PROVIDER"] = "local"
+os.environ["DERIVLAB_LLM_API_KEY"] = ""
+
 import pandas as pd
 import pytest
 

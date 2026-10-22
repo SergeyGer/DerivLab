@@ -19,6 +19,7 @@ import os
 import time
 from collections.abc import Mapping
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import requests
@@ -62,6 +63,46 @@ DEFAULT_COMPATIBLE_MODELS = {
 }
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def load_local_env(path: Path | None = None) -> bool:
+    """Load a local ``.env`` file without overriding real environment values.
+
+    Docker Compose injects variables directly, while a local ``streamlit run``
+    has no such wrapper. This keeps both launch paths consistent and never logs
+    values. The parser intentionally supports only simple ``KEY=VALUE`` lines;
+    it is not a shell interpreter.
+    """
+
+    env_path = Path(path) if path is not None else PROJECT_ROOT / ".env"
+    try:
+        raw = env_path.read_text(encoding="utf-8")
+    except (FileNotFoundError, OSError, UnicodeDecodeError):
+        return False
+
+    loaded = False
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:].strip()
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not key or not key.replace("_", "").isalnum() or key[0].isdigit():
+            continue
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+            value = value[1:-1]
+        if key not in os.environ:
+            os.environ[key] = value
+            loaded = True
+    return loaded
+
+
 @dataclass(frozen=True)
 class ModelRecommendation:
     """A model pairing recommendation shown in the UI and README."""
@@ -75,7 +116,7 @@ class ModelRecommendation:
 MODEL_RECOMMENDATIONS: tuple[ModelRecommendation, ...] = (
     ModelRecommendation(
         role="Critic / rival fund manager",
-        primary="OpenAI GPT-5",
+        primary="OpenAI GPT-5 (fallback: GPT-4.1)",
         alternatives=("Anthropic Claude Sonnet 4.5", "Google Gemini 2.5 Pro"),
         rationale=(
             "Best at multi-metric reasoning, nuanced risk critique, and following the strict "
@@ -84,7 +125,7 @@ MODEL_RECOMMENDATIONS: tuple[ModelRecommendation, ...] = (
     ),
     ModelRecommendation(
         role="Fast news wire",
-        primary="OpenAI GPT-5 mini",
+        primary="OpenAI GPT-5 mini (fallback: GPT-4.1-mini)",
         alternatives=("Anthropic Claude Haiku 4.5", "Google Gemini 2.5 Flash"),
         rationale=(
             "Headlines need speed and low cost more than deep reasoning. A mini/flash model "
@@ -94,7 +135,7 @@ MODEL_RECOMMENDATIONS: tuple[ModelRecommendation, ...] = (
     ModelRecommendation(
         role="Autonomous trading decisions",
         primary="Deterministic local quant core",
-        alternatives=("GPT-5 mini with JSON mode", "Claude Haiku 4.5", "Qwen3-32B"),
+        alternatives=("GPT-4.1-mini with JSON mode", "Claude Haiku 4.5", "Qwen3-32B"),
         rationale=(
             "Trading decisions should be reproducible and auditable. Keep the built-in policy "
             "as the default; enable LLM-directed decisions only when you want creative variety."
@@ -193,7 +234,11 @@ class LLMSettings:
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> LLMSettings:
-        values = env if env is not None else os.environ
+        if env is None:
+            load_local_env()
+            values: Mapping[str, str] = os.environ
+        else:
+            values = env
         explicit_provider = str(values.get("DERIVLAB_LLM_PROVIDER", "")).strip().lower()
         generic_key = str(values.get("DERIVLAB_LLM_API_KEY", "")).strip()
         openai_key = str(values.get("OPENAI_API_KEY", "")).strip()
@@ -484,23 +529,25 @@ def public_model_stack(settings: LLMSettings, use_llm_decisions: bool = True) ->
     """A UI-friendly list of the models currently in use."""
 
     active = settings.public_dict(use_llm_decisions=use_llm_decisions)
+    decision_llm = settings.enabled and use_llm_decisions
+    narrative_llm = settings.enabled
     return [
         {
             "role": "Autonomous decisions",
             "model": active["decision_model"],
-            "provider": active["provider_label"],
-            "mode": "LLM" if settings.enabled and use_llm_decisions else "Local",
+            "provider": active["provider_label"] if decision_llm else "Offline deterministic",
+            "mode": "LLM" if decision_llm else "Local",
         },
         {
             "role": "AlphaVanguard critic",
             "model": active["critic_model"],
-            "provider": active["provider_label"],
-            "mode": "LLM" if settings.enabled else "Local fallback",
+            "provider": active["provider_label"] if narrative_llm else "Offline deterministic",
+            "mode": "LLM" if narrative_llm else "Local fallback",
         },
         {
             "role": "NewsWire headlines",
             "model": active["news_model"],
-            "provider": active["provider_label"],
-            "mode": "LLM" if settings.enabled else "Local fallback",
+            "provider": active["provider_label"] if narrative_llm else "Offline deterministic",
+            "mode": "LLM" if narrative_llm else "Local fallback",
         },
     ]

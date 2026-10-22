@@ -34,3 +34,6 @@ test-results/
 Thumbs.db
 *.log
 .idea/
+
+# Local credentials — never commit
+.git-token

@@ -23,3 +23,5 @@ data/cache
 .DS_Store
 .idea
 .vscode
+
+.git-token

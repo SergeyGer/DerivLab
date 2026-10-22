@@ -31,6 +31,7 @@ from derivlab.agents.llm import (
     LLMClient,
     LLMResult,
     LLMSettings,
+    load_local_env,
     public_model_stack,
 )
 from derivlab.agents.parsing import extract_json_array, extract_json_object
@@ -143,6 +144,25 @@ class FakeClient:
 # ---------------------------------------------------------------------------
 # Settings and model catalog
 # ---------------------------------------------------------------------------
+
+
+def test_dotenv_loader_is_safe_and_non_overriding(tmp_path, monkeypatch):
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "# local only\n"
+        "DERIVLAB_TEST_A=alpha\n"
+        'DERIVLAB_TEST_B="beta gamma"\n'
+        "export DERIVLAB_TEST_C=gamma\n"
+        "DERIVLAB_TEST_A=ignored\n",
+        encoding="utf-8",
+    )
+    for key in ("DERIVLAB_TEST_A", "DERIVLAB_TEST_B", "DERIVLAB_TEST_C"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv("DERIVLAB_TEST_B", "already-set")
+    assert load_local_env(env_file) is True
+    assert __import__("os").environ["DERIVLAB_TEST_A"] == "alpha"
+    assert __import__("os").environ["DERIVLAB_TEST_B"] == "already-set"
+    assert __import__("os").environ["DERIVLAB_TEST_C"] == "gamma"
 
 
 def test_llm_settings_local_defaults():

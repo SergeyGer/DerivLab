@@ -588,9 +588,13 @@ def run_arena(
         if "critic" in role:
             row["model"] = report.model
             row["mode"] = "LLM" if report.used_llm else "Local fallback"
+            if not report.used_llm:
+                row["provider"] = "Offline deterministic"
         elif "news" in role:
             row["model"] = news.model
             row["mode"] = "LLM" if news.used_llm else "Local fallback"
+            if not news.used_llm:
+                row["provider"] = "Offline deterministic"
 
     news_model = news.model
     model_assignments = [
