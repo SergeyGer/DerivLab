@@ -1,5 +1,5 @@
 # Convenience commands for local development and Docker demos.
-PYTHON ?= python3.10
+PYTHON ?= python3.11
 VENV ?= .venv
 PIP := $(VENV)/bin/pip
 PY := $(VENV)/bin/python

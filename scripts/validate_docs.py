@@ -78,8 +78,8 @@ def _check_versioning(errors: list[str]) -> None:
         if phrase not in text:
             errors.append(f"docs/VERSIONING.md: missing {phrase!r}")
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    if "## [1.1.0]" not in changelog:
-        errors.append("CHANGELOG.md: missing the 1.1.0 release entry")
+    if "## [1.2.0]" not in changelog:
+        errors.append("CHANGELOG.md: missing the 1.2.0 release entry")
 
 
 def _check_assets(errors: list[str]) -> None:

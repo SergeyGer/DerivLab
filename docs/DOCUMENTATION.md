@@ -98,7 +98,7 @@ image in the repository so the social card is reviewable and reproducible.
 
 ## Versioning
 
-See [`docs/VERSIONING.md`](VERSIONING.md). The current release is **1.1.0**.
+See [`docs/VERSIONING.md`](VERSIONING.md). The current release is **1.2.0**.
 `CHANGELOG.md` is the source of truth for user-visible changes; the Wiki Release
 Notes mirror the highlights.
 

@@ -13,7 +13,7 @@ MAJOR.MINOR.PATCH
 - **PATCH** — bug fixes, documentation, performance, or visual polish that does
   not change the public contract.
 
-The current release is **1.1.0**.
+The current release is **1.2.0**.
 
 ---
 
@@ -23,7 +23,7 @@ A release is complete only when all of these exist:
 
 | Artifact | Convention |
 |---|---|
-| Git tag | `vMAJOR.MINOR.PATCH` (for example `v1.1.0`) |
+| Git tag | `vMAJOR.MINOR.PATCH` (for example `v1.2.0`) |
 | GitHub Release | Title `DerivLab X.Y.Z — <theme>` with highlights and verification |
 | GHCR image | `ghcr.io/sergeyger/derivlab:latest` and `:X.Y.Z` |
 | CHANGELOG | A `## [X.Y.Z]` section with Added/Changed/Fixed |

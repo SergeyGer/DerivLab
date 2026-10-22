@@ -22,7 +22,7 @@ Microsoft **Dev Containers** extension.
 
 ## Why this works for a distributed team
 
-- The same pinned `requirements.txt` and Python 3.10 image are used on Windows,
+- The same pinned `requirements.txt` and Python 3.11 image are used on Windows,
   macOS Intel, Apple Silicon, and Linux.
 - The workspace is bind-mounted through `${localWorkspaceFolder}` — there are no
   absolute host paths in the configuration.

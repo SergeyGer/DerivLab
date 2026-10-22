@@ -24,7 +24,7 @@ def test_compose_disables_autostart_and_persists_cache():
     assert "8501" in text
 
 
-def test_dockerfile_is_multistage_and_python310():
+def test_dockerfile_is_multistage_and_python311():
     text = (ROOT / "Dockerfile").read_text(encoding="utf-8")
     assert "FROM python:${PYTHON_VERSION}-slim AS builder" in text
     assert "AS runtime" in text

@@ -20,8 +20,8 @@ services:
       context: .
       target: runtime
       args:
-        APP_VERSION: "1.1.0"
-    image: derivlab:1.1.0
+        APP_VERSION: "1.2.0"
+    image: derivlab:1.2.0
     container_name: derivlab-app
     restart: "no"
     init: true
@@ -71,7 +71,7 @@ services:
     build:
       context: .
       target: runtime
-    image: derivlab:1.1.0
+    image: derivlab:1.2.0
     restart: "no"
     init: true
     user: "1000:1000"
