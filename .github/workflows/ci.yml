@@ -39,10 +39,10 @@ jobs:
             --cov=derivlab \
             --cov-report=term \
             --cov-report=xml \
+            --cov-report=json:coverage.json \
             --cov-fail-under=80
-      - name: Export coverage JSON
-        run: python -m coverage json -o coverage.json
       - name: Verify coverage badge
+        timeout-minutes: 2
         run: python scripts/update_coverage_badge.py --check
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
