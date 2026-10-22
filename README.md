@@ -89,9 +89,11 @@ Refresh all (5Y)** or run:
 docker compose --profile seed run --rm derivlab-seed
 ```
 
-> Legacy Compose v1 users can substitute `docker-compose` for `docker compose`.
-> The cache is stored in the named Docker volume `derivlab-cache`, so it
-> survives `docker compose down`, container deletion, and image rebuilds.
+> Replace `<your-org>` with your GitHub account or organization before sharing
+> the repository. Legacy Compose v1 users can substitute `docker-compose` for
+> `docker compose`. The cache is stored in the named Docker volume
+> `derivlab-cache`, so it survives `docker compose down`, container deletion,
+> and image rebuilds.
 
 ### Docker cheat sheet
 
