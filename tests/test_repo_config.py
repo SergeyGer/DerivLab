@@ -126,10 +126,20 @@ def test_ai_agent_docs_and_env_contract():
     ):
         assert key in env_text
     readme = (ROOT / "README.md").read_text(encoding="utf-8").lower()
-    for term in ("ai arena", "alphavanguard", "model", "claude", "qwen"):
+    for term in ("ai arena", "alphavanguard", "model", "documentation"):
         assert term in readme
+    assert "wiki" in readme
     assert (ROOT / "derivlab" / "agents" / "arena.py").exists()
     assert (ROOT / "derivlab" / "agents" / "bridge.py").exists()
+
+
+def test_demo_media_is_present():
+    mp4 = ROOT / "docs" / "demo" / "derivlab-ai-arena.mp4"
+    gif = ROOT / "docs" / "demo" / "derivlab-ai-arena.gif"
+    poster = ROOT / "docs" / "demo" / "poster.png"
+    assert mp4.exists() and mp4.stat().st_size > 1_000_000
+    assert gif.exists() and gif.stat().st_size > 500_000
+    assert poster.exists() and poster.stat().st_size > 100_000
 
 
 def test_live_game_uses_stable_frontend_identities():
