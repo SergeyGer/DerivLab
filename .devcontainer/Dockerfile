@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # Developer image: same Python/runtime pins as production, plus dev tooling.
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

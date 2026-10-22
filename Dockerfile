@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1.7
 # ---------------------------------------------------------------------------
 # DerivLab - multi-stage, reproducible Streamlit image
-# Base image intentionally matches the SRS: python:3.10-slim
+# Python 3.11 is the minimum for the patched Streamlit/PyArrow releases.
 # ---------------------------------------------------------------------------
-ARG PYTHON_VERSION=3.10
-ARG APP_VERSION=1.1.0
+ARG PYTHON_VERSION=3.11
+ARG APP_VERSION=1.2.0
 
 FROM python:${PYTHON_VERSION}-slim AS builder
 ARG APP_VERSION

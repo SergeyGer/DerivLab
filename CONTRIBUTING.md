@@ -12,7 +12,7 @@ the same checkout.
 4. Start the app with `make run` (or `streamlit run app.py --server.port 8501`).
 5. Run the checks with `make test` and `make lint`.
 
-The dev container pins Python 3.10 and all dependencies. It mounts the checkout
+The dev container pins Python 3.11 and all dependencies. It mounts the checkout
 through `${localWorkspaceFolder}`, so no machine-specific paths are committed.
 The bundled `data/seed` folder makes the first launch work offline.
 

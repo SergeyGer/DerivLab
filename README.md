@@ -19,7 +19,7 @@ consequence you can see.
 [![Coverage](docs/badges/coverage.svg)](https://github.com/SergeyGer/DerivLab/wiki/Testing-and-CI)
 [![License: MIT](https://img.shields.io/badge/license-MIT-00E676)](LICENSE)
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.40-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Backtrader](https://img.shields.io/badge/engine-Backtrader-4B8BBE)](https://www.backtrader.com/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)

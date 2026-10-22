@@ -1,5 +1,5 @@
 {
-  "name": "DerivLab · Python 3.10",
+  "name": "DerivLab · Python 3.11",
   "build": {
     "dockerfile": "Dockerfile",
     "context": ".."

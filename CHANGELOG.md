@@ -2,6 +2,24 @@
 
 All notable changes to DerivLab are documented here.
 
+## [1.2.0] - 2026-10-22
+
+### Security
+
+- **Streamlit 1.54.0** fixes the cache-hash collision advisory and the Windows
+  SSRF/NTLM credential exposure advisory.
+- **PyArrow 23.0.1** fixes the Apache Arrow IPC use-after-free advisory.
+- **pytest 9.0.3** fixes the temporary-directory handling advisory.
+- Dependabot alerts for the affected manifests are resolved.
+
+### Changed
+
+- Minimum supported Python is now **3.11** (required by the patched Streamlit
+  and PyArrow releases). Python 3.10 support is retired.
+- Docker image, CI, Dev Container, Makefile, and documentation now target
+  Python 3.11.
+- Version bumped to 1.2.0; Compose image and GHCR publish defaults updated.
+
 ## [1.1.0] - 2026-10-22
 
 ### Added
