@@ -111,3 +111,14 @@ def test_screenshots_exist():
 @pytest.mark.parametrize("name", ["Makefile", "CONTRIBUTING.md", "LICENSE", ".env.example", "requirements-dev.txt"])
 def test_repository_files_exist(name):
     assert (ROOT / name).exists()
+
+
+def test_live_game_uses_stable_frontend_identities():
+    ui = (ROOT / "derivlab" / "ui.py").read_text(encoding="utf-8")
+    theme = (ROOT / "derivlab" / "theme.py").read_text(encoding="utf-8")
+    assert 'key="game_live_chart"' in ui
+    assert 'key="game_result_chart"' in ui
+    assert "@st.fragment(run_every=1.0)" in ui
+    assert "disable_browser_translation" in ui
+    assert "notranslate" in theme
+    assert "translate" in theme

@@ -7,6 +7,7 @@ import textwrap
 from collections.abc import Iterable
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from .config import COLORS, FONT_MONO, FONT_SANS
 from .metrics import ScoreCard
@@ -800,6 +801,45 @@ def html_block(markup: str) -> None:
     """
     cleaned = " ".join(textwrap.dedent(str(markup)).split())
     st.markdown(cleaned, unsafe_allow_html=True)
+
+
+def disable_browser_translation() -> None:
+    """Ask browsers not to machine-translate the live terminal DOM.
+
+    Chrome/Edge/Google Translate replace text nodes in place. React (and thus
+    Streamlit) can then fail with "Failed to execute 'removeChild' on 'Node'"
+    while it patches a rapidly updating live view. The marker below is the
+    standard Google Translate opt-out and also sets the document language.
+    It is safe in iframes that block parent access and does not affect manual
+    translation of the README or exported content.
+    """
+    components.html(
+        """
+        <script>
+        (function () {
+          try {
+            const doc = window.parent.document;
+            if (!doc) return;
+            doc.documentElement.setAttribute("translate", "no");
+            doc.documentElement.setAttribute("lang", "en");
+            doc.documentElement.classList.add("notranslate");
+            if (doc.body) doc.body.classList.add("notranslate");
+            if (!doc.querySelector('meta[name="google"][content="notranslate"]')) {
+              const meta = doc.createElement("meta");
+              meta.setAttribute("name", "google");
+              meta.setAttribute("content", "notranslate");
+              doc.head.appendChild(meta);
+            }
+          } catch (error) {
+            /* Cross-origin iframe: nothing else to do. */
+          }
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+        scrolling=False,
+    )
 
 
 def inject_theme() -> None:

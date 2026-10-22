@@ -72,16 +72,22 @@ def test_game_flow_and_debrief():
     assert any(button.key == "game_fast" for button in at.button)
 
     at.button(key="game_fast").click().run()
+    # Fragment state changes are applied on the next fragment run; AppTest has
+    # no wall-clock timer, so trigger one explicitly.
+    at.run()
     _clean(at)
     if any(button.key == "decision_hold" for button in at.button):
         at.button(key="decision_hold").click().run()
+        at.run()
         _clean(at)
-        at.button(key="game_fast").click().run()
-        _clean(at)
+        if any(button.key == "game_fast" for button in at.button):
+            at.button(key="game_fast").click().run()
+            at.run()
+            _clean(at)
     if any(button.key == "decision_liquidate" for button in at.button):
         at.button(key="decision_liquidate").click().run()
+        at.run()
         _clean(at)
-    # A full rerun clears any stale fragment elements after the game ends.
     at.run()
     _clean(at)
     body = "\n".join(item.value for item in at.markdown)

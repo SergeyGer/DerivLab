@@ -4,7 +4,7 @@
 # Base image intentionally matches the SRS: python:3.10-slim
 # ---------------------------------------------------------------------------
 ARG PYTHON_VERSION=3.10
-ARG APP_VERSION=1.0.0
+ARG APP_VERSION=1.0.1
 
 FROM python:${PYTHON_VERSION}-slim AS builder
 ARG APP_VERSION

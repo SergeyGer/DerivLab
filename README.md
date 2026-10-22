@@ -492,8 +492,10 @@ DerivLab/
 | Refresh fails with 429 | Yahoo is rate-limiting. Keep the existing cache; retry later or use the seed |
 | “Below one lot” warning | Increase capital or choose a cheaper instrument; the warning includes a one-click fix |
 | Dev Container permission error | Rebuild the container; post-create re-creates `data/cache` with the developer UID |
+| Browser shows `removeChild` / `NotFoundError` | This is a browser auto-translation / DOM mutation issue in live React views. DerivLab 1.0.1 sets `notranslate` markers and stable chart identities; do a hard refresh and disable auto-translation for the tab |
 | Want to reset the demo data | `docker compose down -v` (removes the cache volume) then `up --build` |
 | Need LAN access | `DERIVLAB_BIND_ADDR=0.0.0.0 docker compose up` and use the host IP |
+| Translation is desired | Translate the README or take screenshots; the live terminal opts out of automatic machine translation to protect its React DOM |
 
 ---
 

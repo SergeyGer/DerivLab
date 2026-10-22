@@ -996,16 +996,12 @@ def _game_events_expander(game: ScenarioGame) -> None:
         st.dataframe(display, hide_index=True, use_container_width=True)
 
 
-def _render_game_live(game: ScenarioGame) -> None:
-    theme.status_bar(_game_status_items(game), live=game.latest_status())
-    st.progress(
-        min(max(game.progress, 0.0), 1.0),
-        text=f"Tape {game.days_elapsed}/{game.days_total} · {game.current_date.date()} · "
-        f"{game.scenario_label}",
-    )
+def _render_game_alert_area(game: ScenarioGame, running: bool, playing: bool) -> None:
+    """Render the paused decision area without forcing a full-app rerun.
 
-    running = game.state == "running"
-    playing = bool(st.session_state.get("game_playing"))
+    All state changes are picked up by the always-on fragment timer (1 s), so
+    playback continues smoothly and the DOM tree is not torn down mid-update.
+    """
     if game.state == "alert" and game.active_alert is not None:
         alert = game.active_alert
         theme.risk_alert(
@@ -1038,7 +1034,6 @@ def _render_game_live(game: ScenarioGame) -> None:
         ):
             if game.roll():
                 st.session_state.game_playing = True
-                st.rerun()
             else:
                 st.error(game.last_action_message or "The roll could not be executed.")
         if decision[1].button(
@@ -1049,7 +1044,6 @@ def _render_game_live(game: ScenarioGame) -> None:
         ):
             game.hold()
             st.session_state.game_playing = True
-            st.rerun()
         if decision[2].button(
             "Liquidate / Close",
             key="decision_liquidate",
@@ -1058,7 +1052,6 @@ def _render_game_live(game: ScenarioGame) -> None:
         ):
             game.liquidate()
             st.session_state.game_playing = False
-            st.rerun()
         if not can_roll:
             st.caption(f"Roll unavailable: {roll_reason}")
     elif running:
@@ -1066,20 +1059,33 @@ def _render_game_live(game: ScenarioGame) -> None:
             st.caption("Playback is live: one simulated trading day per second.")
         else:
             st.caption("Playback paused. Press Play, Step, or Fast-forward to continue.")
-    _plot(charts.price_path_figure(game, height=470), key=f"game_chart_{game.index}")
+
+
+def _render_game_live(game: ScenarioGame) -> None:
+    theme.status_bar(_game_status_items(game), live=game.latest_status())
+    st.progress(
+        min(max(game.progress, 0.0), 1.0),
+        text=f"Tape {game.days_elapsed}/{game.days_total} · {game.current_date.date()} · "
+        f"{game.scenario_label}",
+    )
+
+    running = game.state == "running"
+    playing = bool(st.session_state.get("game_playing"))
+    _render_game_alert_area(game, running, playing)
+    # A stable key lets Plotly update the same React node every second instead of
+    # replacing the chart on each tick. This is what prevents the frontend
+    # "removeChild" DOM error during long auto-play sessions.
+    _plot(charts.price_path_figure(game, height=470), key="game_live_chart")
     theme.kpi_grid(_game_kpis(game))
 
     controls = st.columns([1, 1, 1.2, 1.2, 1])
     if controls[0].button("▶ Play", key="game_play", type="primary", disabled=(not running or playing), use_container_width=True):
         st.session_state.game_playing = True
-        st.rerun()
     if controls[1].button("Pause", key="game_pause", disabled=(not playing), use_container_width=True):
         st.session_state.game_playing = False
-        st.rerun()
     if controls[2].button("Step +1 day", key="game_step", disabled=not running, use_container_width=True):
         game.advance()
         st.session_state.game_playing = False
-        st.rerun()
     if controls[3].button(
         "Fast-forward → alert",
         key="game_fast",
@@ -1092,7 +1098,6 @@ def _render_game_live(game: ScenarioGame) -> None:
                 break
             game.advance()
         st.session_state.game_playing = False
-        st.rerun()
     if controls[4].button("New scenario", key="game_reset", use_container_width=True):
         st.session_state.game = None
         st.session_state.game_playing = False
@@ -1137,7 +1142,7 @@ def _render_game_results(game: ScenarioGame) -> None:
                 theme.kpi_card("Tape", f"{game.days_elapsed}/{game.days_total}", "Trading days", "muted"),
             ]
         )
-        _plot(charts.price_path_figure(game, height=460), key=f"result_chart_{game.days_elapsed}")
+        _plot(charts.price_path_figure(game, height=460), key="game_result_chart")
         _game_events_expander(game)
     with right:
         if score is not None:
@@ -1188,29 +1193,29 @@ def render_game() -> None:
         st.session_state.game = None
         st.rerun()
         return
-    if game.state == "finished":
-        st.caption(f"{game.asset.symbol} · {game.strategy_name} · {game.scenario_label}")
-        _render_game_results(game)
-        return
 
     st.caption(
         f"{game.asset.symbol} · {game.strategy_name} · {game.scenario_label} · "
         f"{game.days_total} trading days"
     )
 
-    run_every = 1.0 if st.session_state.get("game_playing") else None
-
-    @st.fragment(run_every=run_every)
-    def _live_fragment() -> None:
-        live_game: ScenarioGame = st.session_state.game
+    # Keep the fragment mounted for the whole game with a constant timer. The
+    # timer advances only while the user is playing; alerts, decisions, debriefs,
+    # and play/pause changes no longer call st.rerun() inside the fragment.
+    @st.fragment(run_every=1.0)
+    def _game_fragment() -> None:
+        live_game = st.session_state.get("game")
+        if not isinstance(live_game, ScenarioGame):
+            st.rerun()
+            return
         if live_game.state == "running" and st.session_state.get("game_playing"):
             live_game.advance()
-            if live_game.state != "running":
-                st.session_state.game_playing = False
-                st.rerun()
-        _render_game_live(live_game)
+        if live_game.state == "finished":
+            _render_game_results(live_game)
+        else:
+            _render_game_live(live_game)
 
-    _live_fragment()
+    _game_fragment()
 
 
 # ---------------------------------------------------------------------------
@@ -1530,6 +1535,7 @@ def main() -> None:
         initial_sidebar_state="expanded",
     )
     theme.inject_theme()
+    theme.disable_browser_translation()
     _init_state()
     _render_sidebar()
     page = st.session_state.get("page", "strategy")

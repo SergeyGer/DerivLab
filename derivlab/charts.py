@@ -427,26 +427,33 @@ def price_path_figure(game: ScenarioGame, height: int = 500) -> go.Figure:
 
     events = game.event_frame()
     alert_events = events[events["kind"].isin(["alert", "assignment", "finish"])] if not events.empty else events
+    alert_x: list = []
+    alert_y: list[float] = []
+    alert_text: list[str] = []
     if not alert_events.empty:
-        alert_y = []
-        for event_date in alert_events["date"]:
+        for _, event in alert_events.iterrows():
+            event_date = event["date"]
             try:
                 alert_y.append(float(game.frame.loc[event_date, "Close"]))
             except KeyError:
                 alert_y.append(float(game.frame["Close"].iloc[-1]))
-        fig.add_trace(
-            go.Scatter(
-                x=alert_events["date"],
-                y=alert_y,
-                mode="markers",
-                name="Events",
-                marker=dict(color=COLORS["pink"], size=8, symbol="diamond"),
-                text=alert_events["title"],
-                hovertemplate="%{text}<br>%{x|%Y-%m-%d}<extra></extra>",
-            ),
-            row=1,
-            col=1,
-        )
+            alert_x.append(event_date)
+            alert_text.append(str(event["title"]))
+    # Always emit the trace, even when empty, so the Plotly figure has a stable
+    # number of traces across ticks and alerts.
+    fig.add_trace(
+        go.Scatter(
+            x=alert_x,
+            y=alert_y,
+            mode="markers",
+            name="Events",
+            marker=dict(color=COLORS["pink"], size=8, symbol="diamond"),
+            text=alert_text,
+            hovertemplate="%{text}<br>%{x|%Y-%m-%d}<extra></extra>",
+        ),
+        row=1,
+        col=1,
+    )
 
     fig.add_trace(
         go.Scatter(
