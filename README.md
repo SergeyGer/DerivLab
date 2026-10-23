@@ -10,6 +10,7 @@ A cinematic, hands-on simulator where real market history becomes a playground,
 three autonomous AI desks trade against you, and every decision has a
 consequence you can see.
 
+[**Try the offline demo →**](https://derivlab-pavyratzrx7won9iv4zmcg.streamlit.app/) ·
 [**Watch the 25-second demo →**](docs/demo/derivlab-ai-arena.mp4) ·
 [**Explore the documentation →**](https://github.com/SergeyGer/DerivLab/wiki) ·
 [**Quick Start**](#-quick-start)
@@ -20,12 +21,12 @@ consequence you can see.
 [![License: MIT](https://img.shields.io/badge/license-MIT-00E676)](LICENSE)
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.40-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.54-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Backtrader](https://img.shields.io/badge/engine-Backtrader-4B8BBE)](https://www.backtrader.com/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![OpenAI](https://img.shields.io/badge/AI-OpenAI%20%C2%B7%20local%20fallback-412991?logo=openai&logoColor=white)](https://github.com/SergeyGer/DerivLab/wiki/AI-Model-Guide)
 
-[![Try the offline demo](https://img.shields.io/badge/Try%20the%20offline%20demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://share.streamlit.io/deploy?repository=https://github.com/SergeyGer/DerivLab&branch=main&mainModule=app.py)
+[![Try the offline demo](https://img.shields.io/badge/Try%20the%20offline%20demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://derivlab-pavyratzrx7won9iv4zmcg.streamlit.app/)
 [![GHCR](https://img.shields.io/badge/ghcr.io-sergeyger%2Fderivlab-2496ED?logo=docker&logoColor=white)](https://github.com/SergeyGer/DerivLab/pkgs/container/derivlab)
 
 </div>
@@ -229,7 +230,7 @@ Open **http://localhost:8501**. The image runs the bundled seed and the
 deterministic local AI models; **no API key is required**.
 
 > Prefer a zero-install widget? Use the
-> [**Try the offline demo**](https://share.streamlit.io/deploy?repository=https://github.com/SergeyGer/DerivLab&branch=main&mainModule=app.py)
+> [**Try the offline demo**](https://derivlab-pavyratzrx7won9iv4zmcg.streamlit.app/)
 > button: Streamlit Community Cloud builds the app from GitHub and runs it with
 > local models. The first deploy requires authorizing Streamlit with GitHub.
 

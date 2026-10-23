@@ -28,6 +28,8 @@ the one-command path as a supported entry point.
 
 ### Streamlit Community Cloud
 
+Live demo: <https://derivlab-pavyratzrx7won9iv4zmcg.streamlit.app/>
+
 [One-click deploy](https://share.streamlit.io/deploy?repository=https://github.com/SergeyGer/DerivLab&branch=main&mainModule=app.py)
 creates a hosted widget from `app.py`. The app works without secrets because the
 AI Arena falls back to local models. After deploy, replace the badge link in the
