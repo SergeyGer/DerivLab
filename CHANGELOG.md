@@ -4,6 +4,16 @@ All notable changes to DerivLab are documented here.
 
 ## [Unreleased]
 
+### Documentation
+
+- Added the live “Try the offline demo” link to the top of the README, above
+  the demo film, and refreshed the Streamlit technology badge.
+- Migrated `main` protection to the **Protect Main** repository ruleset with
+  required status checks, required pull requests, no bypass actors, and
+  deletion/force-push protection.
+- Updated the GitHub About description to call out the AI Arena and autonomous
+  agents.
+
 ### Fixed
 
 - Streamlit Cloud dependency installation on Python 3.13 by moving NumPy to
