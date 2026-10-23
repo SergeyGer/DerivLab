@@ -44,6 +44,21 @@ consequence you can see.
 
 ---
 
+## Start here
+
+Choose the path that matches the time you have.
+
+| I want to… | Time | What you get | Start |
+|---|---:|---|---|
+| **See it working** | **2 min** | A live AI Arena, one historical cycle, a verdict and a news wire | [Try the live demo](https://derivlab-pavyratzrx7won9iv4zmcg.streamlit.app/) · [Watch the film](docs/demo/derivlab-ai-arena.mp4) |
+| **Learn the strategies** | **20 min** | Covered calls, straddles, condors, basis — and the risk behind each one | [Strategy Deck](#1-strategy-deck--start-with-a-playbook) · [Feature Tour](https://github.com/SergeyGer/DerivLab/wiki/Feature-Tour) |
+| **Run or deploy it** | **30 min** | A local terminal, a GHCR one-liner, or a Streamlit widget | [Quick Start](#-quick-start) · [Deployment](https://github.com/SergeyGer/DerivLab/wiki/Deployment) |
+
+> New here? Start with the **2-minute** path, then use the 20-minute path for the
+> vocabulary and intuition. You never need an API key.
+
+---
+
 ## The problem with learning derivatives
 
 Most people meet options through a wall of formulas, Greeks, and warnings.
@@ -271,8 +286,15 @@ The README is the story. The **Wiki** is the manual.
 | Deploy it for a team | [Deployment](https://github.com/SergeyGer/DerivLab/wiki/Deployment) |
 | Read the architecture decisions | [ADR index](docs/adr/README.md) |
 | Understand the documentation system | [Documentation infrastructure](docs/DOCUMENTATION.md) |
+| Check performance, runtime, and model compatibility | [Compatibility & version matrix](docs/COMPATIBILITY.md) |
+| Read release-specific snapshots | [Versioned documentation](docs/versions/README.md) |
 | Plan a release | [Versioning & releases](docs/VERSIONING.md) |
+| Know who maintains the docs | [Documentation owners](docs/OWNERS.md) |
 | Fix a problem | [Troubleshooting](https://github.com/SergeyGer/DerivLab/wiki/Troubleshooting) |
+
+**Docs version:** v1.2.0 · **Last verified:** 2026-10-23 · **Owner:** [@SergeyGer](https://github.com/SergeyGer)
+
+> **Did this page help?** [Send documentation feedback](https://github.com/SergeyGer/DerivLab/issues/new?template=docs-feedback.yml) — broken link, missing step, or wording issue.
 
 ---
 

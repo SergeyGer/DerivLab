@@ -1,0 +1,6 @@
+# Documentation ownership. CODEOWNERS is advisory because the repository is
+# maintained by a single owner; the Protect Main ruleset does not require an
+# approval that the owner cannot self-provide.
+/README.md @SergeyGer
+/docs/ @SergeyGer
+/.github/ISSUE_TEMPLATE/docs-feedback.yml @SergeyGer

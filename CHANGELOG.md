@@ -6,6 +6,13 @@ All notable changes to DerivLab are documented here.
 
 ### Documentation
 
+- Added a time-based **Start here** router to the README and Wiki.
+- Added visual system diagrams for the AI Arena sequence, data lifecycle, and
+  deployment topology, plus an annotated Arena reading guide.
+- Added a compatibility matrix, immutable version snapshots, documentation
+  owners/CODEOWNERS, a feedback issue form, and last-verified metadata.
+- Extended the Docs check to validate anchors, image alt text, Python snippets,
+  version snapshots, and governance files.
 - Added the live “Try the offline demo” link to the top of the README, above
   the demo film, and refreshed the Streamlit technology badge.
 - Migrated `main` protection to the **Protect Main** repository ruleset with
