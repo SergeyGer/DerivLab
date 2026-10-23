@@ -6,6 +6,9 @@ All notable changes to DerivLab are documented here.
 
 ### Documentation
 
+- Added a dedicated **LLM Quality & Reliability** guide covering the acceptance
+  pipeline, validators/clamps, deterministic fallbacks, provenance, tests,
+  human review, and residual factual risk.
 - Added a time-based **Start here** router to the README and Wiki.
 - Added visual system diagrams for the AI Arena sequence, data lifecycle, and
   deployment topology, plus an annotated Arena reading guide.

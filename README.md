@@ -280,6 +280,7 @@ The README is the story. The **Wiki** is the manual.
 | Tour every screen | [Feature Tour](https://github.com/SergeyGer/DerivLab/wiki/Feature-Tour) |
 | Understand the AI desks and the async bridge | [AI Agents](https://github.com/SergeyGer/DerivLab/wiki/AI-Agents) |
 | Choose a model for the critic and the wire | [AI Model Guide](https://github.com/SergeyGer/DerivLab/wiki/AI-Model-Guide) |
+| Understand how LLM output is validated and grounded | [LLM quality & reliability](docs/LLM-QUALITY.md) |
 | Understand the engine, data, and strategy math | [Architecture](https://github.com/SergeyGer/DerivLab/wiki/Architecture) |
 | Run the tests, CI, CodeQL, and coverage | [Testing & CI](https://github.com/SergeyGer/DerivLab/wiki/Testing-and-CI) |
 | Deploy it for a team | [Deployment](https://github.com/SergeyGer/DerivLab/wiki/Deployment) |

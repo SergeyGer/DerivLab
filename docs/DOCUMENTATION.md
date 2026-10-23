@@ -111,6 +111,8 @@ image in the repository so the social card is reviewable and reproducible.
   `APP_VERSION` snapshot is mandatory.
 - **Owners:** [`docs/OWNERS.md`](OWNERS.md) and `.github/CODEOWNERS`.
 - **Feedback:** [documentation issue form](https://github.com/SergeyGer/DerivLab/issues/new?template=docs-feedback.yml).
+- **LLM quality:** [`docs/LLM-QUALITY.md`](LLM-QUALITY.md) documents the
+  acceptance pipeline, clamps, fallbacks, provenance, tests, and residual risks.
 - **Quality gates:** the validator now checks local links, heading anchors, image
   alt text, Python snippet syntax, ADR structure, version snapshots, and
   governance files. Lychee checks external links.
