@@ -15,7 +15,7 @@ import asyncio
 import logging
 import threading
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime
+from datetime import date, datetime, timezone
 from typing import Any
 
 LOGGER = logging.getLogger(__name__)
@@ -116,7 +116,7 @@ class AIAgentBridge:
         raw_date = (
             payload.get("date")
             or payload.get("as_of")
-            or datetime.now(UTC).date().isoformat()
+            or datetime.now(timezone.utc).date().isoformat()
         )
         if isinstance(raw_date, (date, datetime)):
             date_text = raw_date.isoformat()

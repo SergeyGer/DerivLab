@@ -15,7 +15,7 @@ import time
 import zlib
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -582,7 +582,7 @@ class MarketDataService:
                 LOGGER.debug("Manifest skipped %s: %s", symbol, exc)
         payload = {
             "app": "DerivLab",
-            "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
+            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "source": "yfinance (Yahoo Finance)",
             "years_requested": int(years),
             "assets": entries,

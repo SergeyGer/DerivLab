@@ -13,7 +13,7 @@ import json
 import logging
 import math
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime
+from datetime import date, datetime, timezone
 from typing import Any
 
 import pandas as pd
@@ -642,7 +642,7 @@ def run_arena(
         use_llm=active_llm,
         use_llm_decisions=bool(use_llm_decisions and active_llm),
         warnings=list(dict.fromkeys(warnings)),
-        created_at=datetime.now(UTC).isoformat(timespec="seconds"),
+        created_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
         bridge_events=[event.public_dict() for event in user_bridge.events],
     )
     return result
