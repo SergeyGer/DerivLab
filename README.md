@@ -315,3 +315,5 @@ forecast.
 Released under the [MIT License](LICENSE).
 
 Built with curiosity, a dark terminal, and a healthy respect for drawdowns.
+
+[broken link for the ruleset probe](docs/this-file-does-not-exist.md)
