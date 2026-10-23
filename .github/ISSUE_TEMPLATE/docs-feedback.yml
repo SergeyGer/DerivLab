@@ -1,0 +1,55 @@
+name: Documentation feedback
+description: Report unclear, missing, or outdated documentation
+title: "[Docs] "
+labels: ["documentation", "feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping keep the documentation accurate. The public Wiki has
+        no built-in analytics, so this form is the feedback signal we use.
+  - type: input
+    id: page
+    attributes:
+      label: Page URL
+      description: README, a Wiki page, or a specific section anchor.
+      placeholder: https://github.com/SergeyGer/DerivLab/wiki/...
+    validations:
+      required: true
+  - type: dropdown
+    id: version
+    attributes:
+      label: Version
+      options:
+        - main / latest
+        - 1.2.0
+        - 1.1.0
+        - 1.0.1
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: What needs improvement?
+      options:
+        - Unclear explanation
+        - Missing step or prerequisite
+        - Outdated content
+        - Broken link or snippet
+        - Translation / wording
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: What did you expect, and what did you find?
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I checked the current version and the Wiki sidebar.
+          required: true

@@ -148,6 +148,12 @@ def test_documentation_infrastructure_assets():
         "docs/badges/coverage.svg",
         "docs/VERSIONING.md",
         "docs/DOCUMENTATION.md",
+        "docs/COMPATIBILITY.md",
+        "docs/OWNERS.md",
+        "docs/versions/README.md",
+        "docs/versions/v1.2.0.md",
+        ".github/CODEOWNERS",
+        ".github/ISSUE_TEMPLATE/docs-feedback.yml",
         "docs/adr/README.md",
     ):
         path = ROOT / name
@@ -161,6 +167,14 @@ def test_documentation_infrastructure_assets():
         text = adr.read_text(encoding="utf-8")
         for heading in ("## Status", "## Context", "## Decision", "## Consequences"):
             assert heading in text, f"{adr.name}: {heading}"
+
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "## Start here" in readme
+    assert "docs/COMPATIBILITY.md" in readme
+    assert "docs-feedback.yml" in readme
+    compatibility = (ROOT / "docs" / "COMPATIBILITY.md").read_text(encoding="utf-8")
+    assert "**Current release:** 1.2.0" in compatibility
+    assert "**Last verified:**" in compatibility
 
 
 def test_live_game_uses_stable_frontend_identities():
