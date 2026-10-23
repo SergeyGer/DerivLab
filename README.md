@@ -38,8 +38,7 @@ consequence you can see.
 </p>
 
 <p align="center">
-  <em>Live AI Arena · three autonomous desks · a real OpenAI critique · one historical tape.</em><br>
-  <a href="docs/demo/derivlab-ai-arena.mp4">Play the 25-second film</a>
+  <em>Live AI Arena · three autonomous desks · a real OpenAI critique · one historical tape.</em>
 </p>
 
 ---
