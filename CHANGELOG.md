@@ -8,8 +8,11 @@ All notable changes to DerivLab are documented here.
 
 - Streamlit Cloud dependency installation on Python 3.13 by moving NumPy to
   2.2.6 and SciPy to 1.15.3 (wheels for Python 3.10–3.13).
-- Added a friendly preflight message for apps still deployed on Python 3.10,
-  replacing the redacted `ModuleNotFoundError` with the exact redeploy action.
+- Restored Python 3.10 runtime compatibility by using `datetime.timezone.utc`
+  instead of the Python 3.11-only `datetime.UTC` alias.
+- Removed the temporary Python 3.11 preflight guard now that 3.10–3.13 are
+  supported; Docker and CI continue to use Python 3.11 as the recommended
+  production baseline.
 
 ## [1.2.0] - 2026-10-22
 

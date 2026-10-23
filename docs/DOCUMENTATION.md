@@ -33,11 +33,11 @@ creates a hosted widget from `app.py`. The app works without secrets because the
 AI Arena falls back to local models. After deploy, replace the badge link in the
 README with the app's public URL.
 
-Choose **Python 3.11** (or 3.12) in **Advanced settings**. Community Cloud pins
-Python at deployment time and cannot change it in place. If the app was created
-earlier with Python 3.10, delete it and redeploy with the same subdomain. The
-requirements now include NumPy 2.2.6 / SciPy 1.15.3 wheels for 3.10–3.13, so a
-correctly deployed app installs cleanly.
+Choose **Python 3.11** (recommended), or 3.10/3.12/3.13, in **Advanced
+settings**. Community Cloud pins Python at deployment time and cannot change it
+in place. The requirements include wheels for Python 3.10–3.13, so a correctly
+deployed app installs cleanly and does not need a redeploy just for NumPy/SciPy.
+The Docker image and CI use Python 3.11 as the supported production baseline.
 
 ---
 
