@@ -2,6 +2,15 @@
 
 All notable changes to DerivLab are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- Streamlit Cloud dependency installation on Python 3.13 by moving NumPy to
+  2.2.6 and SciPy to 1.15.3 (wheels for Python 3.10–3.13).
+- Added a friendly preflight message for apps still deployed on Python 3.10,
+  replacing the redacted `ModuleNotFoundError` with the exact redeploy action.
+
 ## [1.2.0] - 2026-10-22
 
 ### Security
