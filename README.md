@@ -290,6 +290,7 @@ The README is the story. The **Wiki** is the manual.
 | Read release-specific snapshots | [Versioned documentation](docs/versions/README.md) |
 | Plan a release | [Versioning & releases](docs/VERSIONING.md) |
 | Know who maintains the docs | [Documentation owners](docs/OWNERS.md) |
+| See what is planned | [Roadmap issue #17](https://github.com/SergeyGer/DerivLab/issues/17) |
 | Fix a problem | [Troubleshooting](https://github.com/SergeyGer/DerivLab/wiki/Troubleshooting) |
 
 **Docs version:** v1.2.0 · **Last verified:** 2026-10-23 · **Owner:** [@SergeyGer](https://github.com/SergeyGer)
