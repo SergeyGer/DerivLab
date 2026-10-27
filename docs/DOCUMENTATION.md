@@ -4,7 +4,7 @@ DerivLab deliberately separates the front door from the manual.
 
 | Surface | Audience | Content |
 |---|---|---|
-| [`README.md`](../README.md) | Visitor, educator, decision maker | Story, demo film, screenshots, one-command start |
+| [`README.md`](../README.md) | Visitor, educator, decision maker | Story, 80-second narrated demo film, screenshots, one-command start |
 | [GitHub Wiki](https://github.com/SergeyGer/DerivLab/wiki) | Developer, operator | Setup, architecture, AI, models, tests, deployment, security |
 | [`docs/adr/`](adr/README.md) | Maintainer | Durable architecture decisions |
 | [`docs/VERSIONING.md`](VERSIONING.md) | Maintainer, integrator | SemVer, release artifacts, checklist |

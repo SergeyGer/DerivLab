@@ -6,6 +6,9 @@ All notable changes to DerivLab are documented here.
 
 ### Documentation
 
+- Replaced the demo film with an **80-second narrated 1080p screencast**
+  (English voiceover, chapter labels, real UI captures), refreshed the poster and
+  GIF, and added a full transcript/production-notes page.
 - Added a dedicated **LLM Quality & Reliability** guide covering the acceptance
   pipeline, validators/clamps, deterministic fallbacks, provenance, tests,
   human review, and residual factual risk.
