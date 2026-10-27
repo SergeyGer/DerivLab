@@ -11,7 +11,7 @@ three autonomous AI desks trade against you, and every decision has a
 consequence you can see.
 
 [**Try the offline demo →**](https://derivlab-pavyratzrx7won9iv4zmcg.streamlit.app/) ·
-[**Watch the 25-second demo →**](docs/demo/derivlab-ai-arena.mp4) ·
+[**Watch the 80-second demo →**](docs/demo/derivlab-ai-arena.mp4) ·
 [**Explore the documentation →**](https://github.com/SergeyGer/DerivLab/wiki) ·
 [**Quick Start**](#-quick-start)
 
@@ -33,7 +33,7 @@ consequence you can see.
 
 <p align="center">
   <a href="docs/demo/derivlab-ai-arena.mp4">
-    <img src="docs/demo/derivlab-ai-arena.gif" alt="Watch DerivLab's AI Arena: three autonomous desks trade against the user" width="100%">
+    <img src="docs/demo/derivlab-ai-arena.gif" alt="Watch DerivLab's 80-second AI Arena demo: three autonomous desks trade against the user" width="100%">
   </a>
 </p>
 
@@ -278,6 +278,7 @@ The README is the story. The **Wiki** is the manual.
 |---|---|
 | Install, run, and refresh data | [Getting Started](https://github.com/SergeyGer/DerivLab/wiki/Getting-Started) |
 | Tour every screen | [Feature Tour](https://github.com/SergeyGer/DerivLab/wiki/Feature-Tour) |
+| Read the demo transcript | [80-second narration, timing, and production notes](docs/demo/derivlab-ai-arena-transcript.md) |
 | Understand the AI desks and the async bridge | [AI Agents](https://github.com/SergeyGer/DerivLab/wiki/AI-Agents) |
 | Choose a model for the critic and the wire | [AI Model Guide](https://github.com/SergeyGer/DerivLab/wiki/AI-Model-Guide) |
 | Understand how LLM output is validated and grounded | [LLM quality & reliability](docs/LLM-QUALITY.md) |
